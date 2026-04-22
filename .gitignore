@@ -16,4 +16,7 @@ data/
 catboost_info/
 
 # Package build artifacts
-*.egg-info/*.egg-info/
+*.egg-info/
+
+# Local docs (offline only)
+docs/

@@ -13,4 +13,7 @@ data/
 *.json
 
 # CatBoost auto-generated training logs
-catboost_info/*.egg-info/
+catboost_info/
+
+# Package build artifacts
+*.egg-info/*.egg-info/

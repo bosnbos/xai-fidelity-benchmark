@@ -1,37 +1,32 @@
 # Transavia Pega ADM Analysis
 
-Analysis of Pega Adaptive Decision Manager (ADM) propensity models for Transavia, focused on the L5B15 luggage offer and OnlineFlightCheckinOpen check-in offer.
+Analysis of Pega Adaptive Decision Manager (ADM) propensity models for Transavia. The main focus is the **L5B15 luggage offer, Email/Outbound channel**.
 
 ## Notebooks
 
-There are four notebooks. **Run order matters for the decision data notebooks** — see the dependency note below.
+**01 is independent.** Notebooks 03, 04, and 05 all require 02 to run first.
 
 | Notebook | Purpose | Depends on |
 |---|---|---|
-| `01_adm_analysis.ipynb` | Inspect ADM model snapshots and predictor binning data: offer viability checks, feature importance, time-series comparison of two offers | Nothing — run independently |
-| `02_data_ingestion.ipynb` | Parse raw Pega decision JSON exports, extract L5B15 scoring events, deduplicate, and save to `data/processed/l5b15_decisions.parquet` | Raw JSON files in `data/` |
-| `03_eda.ipynb` | Exploratory analysis of the processed decision data: missingness, target distribution, correlations, categorical cardinality | `02` must run first |
-| `04_modeling.ipynb` | CatBoost surrogate model, evaluation (RMSE, Spearman rank), feature importance, model version drift analysis | `02` must run first |
-
-**01 is independent** — it reads the ADM snapshot files directly and has nothing to do with the decision data pipeline.
-
-**02 → 03 and 04** — notebooks 03 and 04 read from `data/processed/l5b15_decisions.parquet`, which 02 creates. Always run 02 first, or after adding new data.
+| `01_adm_analysis.ipynb` | Inspect ADM model snapshots and predictor binning: offer viability, feature importance, time-series comparison | Nothing |
+| `02_data_ingestion.ipynb` | Parse raw decision JSON exports → filter to Email/Outbound/Luggage/Sales → save parquet | JSON files in `data/decisions/` |
+| `03_eda.ipynb` | EDA on the filtered decision data: missingness, target distribution, correlations, cardinality | `02` |
+| `04_modeling.ipynb` | CatBoost surrogate model, evaluation (RMSE, Spearman rank), feature importance, model version drift | `02` |
+| `05_modeling.ipynb` | Alternative modeling approach on the same filtered dataset | `02` |
 
 ### Adding new data
 
-Drop additional `data*.json` files into `data/` and re-run `02_data_ingestion.ipynb`. It automatically picks up all matching files and deduplicates on `modelExecutionID`, so overlapping exports are never double-counted. Notebooks 03 and 04 will then reflect the updated dataset.
+Drop new Pega decision JSON exports into `data/decisions/` and re-run `02_data_ingestion.ipynb`. It automatically picks up all files in that folder, deduplicates on `modelExecutionID` (so overlapping exports are never double-counted), and overwrites the parquet. Notebooks 03–05 will then reflect the updated dataset.
 
 ## Data
 
-Raw JSON files go in `data/` (gitignored — add locally):
+All raw files are gitignored — add them locally in the correct subfolder:
 
-| File | Contents |
-|---|---|
-| `data-model-snapshop.json` | ~161k ADM model snapshot records (used by notebook 01) |
-| `data-Predictor-binning-snapshot.json` | ~222k predictor binning records (used by notebook 01) |
-| `data*.json` | Decision-level records with nested scoring events (used by notebook 02) |
-
-Processed output is saved to `data/processed/l5b15_decisions.parquet` by notebook 02.
+| Location | Contents | Used by |
+|---|---|---|
+| `data/decisions/` | Pega decision JSON exports (L5B15 scoring events) | Notebook 02 |
+| `data/adm/` | ADM model snapshots + predictor binning JSON | Notebook 01 |
+| `data/processed/` | `l5b15_email_outbound.parquet` — output of notebook 02 | Notebooks 03–05 |
 
 ## Setup
 
@@ -42,30 +37,33 @@ pip install -e .
 jupyter lab
 ```
 
-The `-e .` installs the local `src/my_project` package so notebooks can import shared parsing utilities.
+`pip install -e .` is a one-time step that installs the local `src/my_project` package into the virtual environment, making the shared parsing utilities importable across notebooks.
 
 ## Project structure
 
 ```
-├── data/                                    # Raw JSON files (gitignored — add locally)
-│   └── processed/                           # Parquet output from notebook 02 (gitignored)
+├── data/
+│   ├── adm/                                 # ADM snapshot files (gitignored)
+│   ├── decisions/                           # Raw decision JSON exports (gitignored)
+│   └── processed/                           # Parquet output (gitignored)
 ├── notebooks/
 │   ├── 01_adm_analysis.ipynb                # ADM snapshots & predictor binning
-│   ├── 02_data_ingestion.ipynb              # Raw JSON → parquet
-│   ├── 03_eda.ipynb                         # EDA on decision data
-│   ├── 04_modeling.ipynb                    # Surrogate model & drift analysis
+│   ├── 02_data_ingestion.ipynb              # Raw JSON → filtered parquet
+│   ├── 03_eda.ipynb                         # EDA on Email/Outbound decisions
+│   ├── 04_modeling.ipynb                    # CatBoost surrogate model
+│   ├── 05_modeling.ipynb                    # Alternative modeling approach
 │   └── archive/
-│       └── exploration_original.ipynb       # Original monolithic notebook
+│       └── exploration_original.ipynb
 ├── src/
 │   └── my_project/
 │       └── parsing.py                       # Shared JSON parsing functions
-├── pyproject.toml                           # Project metadata and dependencies
+├── pyproject.toml
 └── README.MD
 ```
 
 ### What is `src/`?
 
-`src/my_project/` is a small Python package that holds code shared across notebooks. Right now it contains `parsing.py` — the functions that extract L5B15 scoring events from nested Pega JSON (`extract_l5b15_rows`, `parse_common_inputs`, etc.). Keeping these in a package rather than copy-pasting them into every notebook means you only need to fix or extend the logic in one place. Running `pip install -e .` makes the package importable as `from my_project.parsing import ...`.
+`src/my_project/` is a small installable Python package containing `parsing.py` — the functions that crack open the nested Pega JSON (`extract_l5b15_rows`, `parse_common_inputs`, etc.). Keeping these in a package means you fix or extend the parsing logic in one place rather than in every notebook. `pip install -e .` registers the package so `from my_project.parsing import ...` works in any notebook using the `.venv` kernel.
 
 ## Stack
 

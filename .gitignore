@@ -13,4 +13,4 @@ data/
 *.json
 
 # CatBoost auto-generated training logs
-catboost_info/
+catboost_info/*.egg-info/

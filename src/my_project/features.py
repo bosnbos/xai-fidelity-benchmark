@@ -11,6 +11,23 @@ EXCLUDE_COLS: columns never used as model inputs.
 
 TARGET = "propensity"
 
+# Pega JSON exports store all predictor values as strings regardless of type.
+# NUMERIC_FEATURES declares which active predictors Pega ADM treats as numeric;
+# everything else in PEGA_FEATURES is symbolic (categorical).
+# Keep this aligned with Pega's own encoding — the surrogate must replicate
+# Pega's decision function, not correct it.
+NUMERIC_FEATURES: frozenset[str] = frozenset({
+    "CustBookedFlight.BookingData.BookingMonth",
+    "IH.Email.Outbound.Pending.pyHistoricalOutcomeCount",
+    "IH.Email.Outbound.Pending.pxLastOutcomeTime.DaysSince",
+    "IH.Email.Outbound.Delivered.pxLastOutcomeTime.DaysSince",
+    "IH.Email.Inbound.Pending.pxLastOutcomeTime.DaysSince",
+    "IH.Email.Inbound.Clicked.pxLastOutcomeTime.DaysSince",
+    "IH.Push.Outbound.Pending.pyHistoricalOutcomeCount",
+    "IH.Push.Outbound.Pending.pxLastOutcomeTime.DaysSince",
+    "IH.Event.Outbound.RealTimeEvent.pyHistoricalOutcomeCount",
+})
+
 # ── Columns to always exclude ──────────────────────────────────────────────
 
 _ID_COLS = [
@@ -96,24 +113,24 @@ PEGA_FEATURES = [
     "CustBookedFlight.FlightNumberOperatorIATA",
     # "CustBookedFlight.CheckinStatus",
     "CustBookedFlight.SeatNumber",
-    "CustBookedFlight.SeatCurrency",
+    # "CustBookedFlight.SeatCurrency",                   # inactive in ADM
     "CustBookedFlight.IsStaffStandBy",
     # "CustBookedFlight.PassengerID",
 
     # ── CustBookedFlight: flight data ─────────────────────────────────────
-    "CustBookedFlight.FlightData.FlightStatus",
-    "CustBookedFlight.FlightData.AircraftType",
+    # "CustBookedFlight.FlightData.FlightStatus",       # inactive in ADM
+    # "CustBookedFlight.FlightData.AircraftType",        # inactive in ADM
     # "CustBookedFlight.FlightData.ArrivalDelayInMinutes",
     # "CustBookedFlight.FlightData.DepartureDelayInMinutes",
     # "CustBookedFlight.FlightData.IsFlightCancelled",
     # "CustBookedFlight.FlightData.IsPostponedFlight",
     # "CustBookedFlight.FlightData.DelayReason",
     # "CustBookedFlight.FlightData.Departed",
-    "CustBookedFlight.FlightData.Arrived",
+    # "CustBookedFlight.FlightData.Arrived",             # inactive in ADM
     "CustBookedFlight.FlightData.AirlineCodeIATA",
-    "CustBookedFlight.FlightData.DepartureAirport",
+    # "CustBookedFlight.FlightData.DepartureAirport",    # inactive in ADM
     "CustBookedFlight.FlightData.DestinationAirport",
-    "CustBookedFlight.FlightData.FlightDistance",
+    # "CustBookedFlight.FlightData.FlightDistance",      # inactive in ADM
 
     # ── Customer: profile ─────────────────────────────────────────────────
     # "Customer.Gender",
@@ -168,7 +185,7 @@ PEGA_FEATURES = [
     # "IH.Event.Outbound.RealTimeEvent.pxLastOutcomeTime.DaysSince",
 
     # ── Model parameters passed by Pega ───────────────────────────────────
-    "param::Param.Age",
+    # "param::Param.Age",                                # inactive in ADM
     "param::Param.BundleName",
     # "param::Param.FlightCost",
     # "param::Param.JourneyType",

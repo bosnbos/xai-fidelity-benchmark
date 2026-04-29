@@ -1,0 +1,17 @@
+=== Depth CV ===
+       cv_rho     std
+depth                
+1      0.4841  0.0652
+2      0.5683  0.0447
+3      0.5945  0.0473
+4      0.6024  0.0408
+5      0.5974  0.0330
+6      0.6071  0.0348
+Best depth: 6
+
+=== Fidelity comparison ===
+                       r2      rmse  spearman_rho  kendall_tau  ks_stat
+model                                                                  
+CatBoost(d=6)      0.5498  0.004341        0.5887       0.4275   0.1894
+Ridge/logit(a=10)  0.1473  0.005974        0.4930       0.3471   0.1828
+NaiveBayes         0.0815  0.006200        0.4578       0.3345   0.4009

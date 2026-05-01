@@ -179,3 +179,41 @@ def extract_filtered_model(
             rows.append(row)
 
     return pd.DataFrame(rows)
+
+
+def load_pega_bins(
+    binning_path,
+    model_id: str,
+) -> dict[str, dict[int, list[str]]]:
+    """Load Pega ADM predictor binning for one model from a newline-delimited JSON file.
+
+    Returns {predictor_name: {bin_index: [value, ...]}} for symbolic (categorical)
+    predictors only, using the latest snapshot for the given model_id.
+    bin_index is 1-based as stored by Pega.
+    """
+    model_id_lower = model_id.lower()
+    records: list[dict] = []
+
+    with open(binning_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            r = json.loads(line)
+            if r["pyModelID"].lower() == model_id_lower and r["pyType"] == "symbolic":
+                records.append(r)
+
+    if not records:
+        return {}
+
+    latest_time = max(r["pySnapshotTime"] for r in records)
+    bins: dict[str, dict[int, list[str]]] = {}
+    for r in records:
+        if r["pySnapshotTime"] != latest_time:
+            continue
+        pred = r["pyPredictorName"]
+        bin_idx = int(r["pyBinIndex"])
+        values = [v.strip() for v in r["pyBinSymbol"].split(",") if v.strip()]
+        bins.setdefault(pred, {})[bin_idx] = values
+
+    return bins

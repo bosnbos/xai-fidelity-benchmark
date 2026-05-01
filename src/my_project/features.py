@@ -159,3 +159,10 @@ VARIANT_FEATURES: dict[str, VariantConfig] = {
         }),
     ),
 }
+
+# ── Primary Pega model IDs per variant (Email/Outbound, highest AUC snapshot) ─
+# Used by PegaBinEncoder to load the correct binning from the ADM snapshot file.
+PEGA_MODEL_IDS: dict[str, str] = {
+    "L5B15": "340a718b-9899-5637-b3be-1b1e660ef365",  # 24 active predictors, AUC=0.77
+    "CLUG":  "80b3b6a6-2527-5330-92b2-0cf46521ff86",  # 21 active predictors, AUC=0.76
+}

@@ -317,6 +317,59 @@ def lime_explain_batch(
     return pd.DataFrame(rows)
 
 
+def compute_split_rankings(
+    X_sub: pd.DataFrame,
+    y_sub: pd.Series,
+    cb_model,
+    X_background: pd.DataFrame,
+    cat_cols: list[str],
+    num_cols: list[str],
+    pega_enc: PegaBinEncoder,
+    lime_sample: int = 500,
+    lime_n_samples: int = 200,
+    random_state: int = 42,
+) -> dict:
+    """Compute DT, SHAP, and LIME importance rankings for a data subset.
+
+    DT is fitted directly on y_sub (Pega propensity scores), introducing one
+    layer of approximation. SHAP and LIME use cb_model as the prediction oracle.
+    LIME is computed on a random sample of lime_sample instances for feasibility.
+
+    Returns {"dt": Series, "shap": Series, "lime": Series}.
+    """
+    feature_names = list(X_sub.columns)
+
+    dt, _, _, _ = dt_surrogate(
+        X_sub, y_sub, cat_cols, num_cols,
+        max_depth_range=range(1, 9), n_splits=5,
+        encoder=pega_enc, random_state=random_state,
+    )
+    dt_imp = dt_importances(dt, feature_names)
+
+    _, shap_imp = shap_importances(cb_model, X_sub, cat_cols)
+
+    rng = np.random.default_rng(random_state)
+    sample_idx = rng.choice(len(X_sub), size=min(lime_sample, len(X_sub)), replace=False)
+    X_lime = X_sub.iloc[sample_idx]
+    lime_df = lime_explain_batch(
+        cb_model, X_background, X_lime, cat_cols, num_cols,
+        n_samples=lime_n_samples, n_features=len(feature_names),
+    )
+    lime_df["base_feature"] = lime_df["feature"].apply(
+        lambda lbl: next(
+            (fn for fn in sorted(feature_names, key=len, reverse=True) if fn in lbl), lbl
+        )
+    )
+    lime_imp = (
+        lime_df.assign(abs_imp=lambda d: d["importance"].abs())
+        .groupby("base_feature")["abs_imp"].mean()
+        .sort_values(ascending=False)
+        .rename("mean_abs_lime")
+    )
+
+    return {"dt": dt_imp, "shap": shap_imp, "lime": lime_imp}
+
+
 def aggregate_lime_importances(lime_df: pd.DataFrame) -> pd.Series:
     """Aggregate per-instance LIME importances into a global mean |importance| ranking.
 

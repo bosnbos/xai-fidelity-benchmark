@@ -9,6 +9,11 @@ LUGGAGE_VARIANTS: frozenset[str] = frozenset(
     {"L5B15", "L5B20", "L5B25", "L5B30", "L5B40", "L5B50", "CLUG"}
 )
 
+# Third-party cross-sell variants
+THIRDPARTY_VARIANTS: frozenset[str] = frozenset(
+    {"BookingDotCom", "Cartrawler"}
+)
+
 
 def safe_float(x):
     try:

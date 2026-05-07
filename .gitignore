@@ -20,3 +20,7 @@ catboost_info/
 
 # Local docs (offline only)
 docs/
+
+# macOS metadata
+.DS_Store
+**/.DS_Store

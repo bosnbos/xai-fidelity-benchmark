@@ -119,7 +119,7 @@ VARIANT_FEATURES: dict[str, VariantConfig] = {
 
     # ── L5B25: 25 kg luggage add-on ───────────────────────────────────────
     # NOTE: only 584 rows in the data extract. Surrogate and explanation
-    # (notebooks 04–05) are viable; stability analysis (06) is borderline —
+    # (notebooks 04–06) are viable; stability analysis (07) is borderline —
     # temporal halves have ~292 rows each and route subgroups are too small.
     "L5B25": VariantConfig(
         features=(

@@ -14,7 +14,7 @@ Analysis of Pega Adaptive Decision Manager (ADM) propensity models for Transavia
 
 ## Notebooks
 
-Run in order. **01 and 02b are independent.** Notebooks 03–07 all require 02 first.
+Run in order. **01 and 02b are independent.** Notebooks 03–08 all require 02 first.
 
 | Notebook | Purpose | Depends on |
 |---|---|---|
@@ -22,10 +22,11 @@ Run in order. **01 and 02b are independent.** Notebooks 03–07 all require 02 f
 | `02_data_ingestion.ipynb` | Raw decision JSON → filtered parquet (L5B15 / CLUG) | `data/decisions/` |
 | `02b_data_ingestion_thirdparty.ipynb` | Raw decision JSON → filtered parquet (BookingDotCom / Cartrawler) | `data/decisions/` |
 | `03_eda.ipynb` | EDA: temporal distribution, channel overview, missingness, model version churn | `02` |
-| `04_surrogate.ipynb` | CatBoost surrogate + Naive Bayes baseline: fidelity suite (R², RMSE, Spearman ρ, Kendall τ, KS) | `02` |
-| `05_explanation.ipynb` | DT (§9), SHAP (§10), LIME (§11), cross-method rank comparison (§12) | `02`, `04` |
-| `06_stability.ipynb` | Stability across temporal and route splits: Spearman ρ, Jaccard@k; within-route DT bootstrap | `02`, `04`, `05` |
-| `07_attribution.ipynb` | Instability decomposition into δ_d, δ_m, δ_e; PSI bin sensitivity analysis | `02`, `04`, `05`, `06` |
+| `04_surrogate_selection.ipynb` | Surrogate architecture selection on L5B15: Linear / GaussianNB / RandomForest / LightGBM / CatBoost on the full fidelity suite | `02` |
+| `05_surrogate_fit.ipynb` | Refit the selected CatBoost per offer variant; saves per-variant artifacts + cross-variant fidelity table for the Results chapter | `02`, `04` |
+| `06_explanation.ipynb` | DT (§9), SHAP (§10), LIME (§11), cross-method rank comparison (§12) | `02`, `05` |
+| `07_stability.ipynb` | Stability across temporal and route splits: Spearman ρ, Jaccard@k; within-route DT bootstrap | `02`, `05`, `06` |
+| `08_attribution.ipynb` | Instability decomposition into δ_d, δ_m, δ_e; PSI bin sensitivity analysis | `02`, `05`, `06`, `07` |
 
 ### Adding new data
 
@@ -50,8 +51,11 @@ All raw and derived files are gitignored — add them locally.
 **Artifact files per variant** (`data/artifacts/l5b15/`, `CLUG/`, `BookingDotCom/`, `Cartrawler/`):  
 `catboost_model.cbm`, `feature_cols.json`, `cat_cols.json`, `num_cols.json`, `train_idx.npy`, `test_idx.npy`, `fidelity.json`, `dt_model.pkl`, `dt_rules.txt`, `shap_values.npy`, `shap_importances.json`, `lime_explanations.parquet`, `lime_importances.json`, `cross_method_comparison.json`
 
-**Summary outputs** (written to `data/artifacts/l5b15/` by notebooks 06–07):  
+**Summary outputs** (written to `data/artifacts/l5b15/` by notebooks 07–08):  
 `stability_summary.json`, `attribution_summary.json`
+
+**Cross-variant outputs** (`data/artifacts/`):  
+`surrogate_fidelity_per_variant.csv` (from notebook 05)
 
 ---
 
@@ -82,10 +86,11 @@ jupyter lab
 │   ├── 02_data_ingestion.ipynb
 │   ├── 02b_data_ingestion_thirdparty.ipynb
 │   ├── 03_eda.ipynb
-│   ├── 04_surrogate.ipynb
-│   ├── 05_explanation.ipynb
-│   ├── 06_stability.ipynb
-│   └── 07_attribution.ipynb
+│   ├── 04_surrogate_selection.ipynb
+│   ├── 05_surrogate_fit.ipynb
+│   ├── 06_explanation.ipynb
+│   ├── 07_stability.ipynb
+│   └── 08_attribution.ipynb
 ├── src/
 │   └── my_project/
 │       ├── parsing.py                       # Pega JSON parsing

@@ -1,13 +1,20 @@
 """Surrogate model building, training, and evaluation utilities."""
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from catboost import CatBoostRegressor
+from scipy.stats import spearmanr
+from sklearn.model_selection import KFold, train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.preprocessing import LabelEncoder
 
+from my_project.features import VARIANT_FEATURES
 from my_project.metrics import fidelity_suite
+from my_project.parsing import THIRDPARTY_VARIANTS
 
 _NAN_MARKERS = frozenset({"", "NaN", "nan", "None", "none", "null", "NULL"})
 
@@ -147,3 +154,160 @@ def evaluate_surrogate(
     result = fidelity_suite(y_test.values, pred)
     result["model"] = model_name
     return result
+
+
+def cv_select_depth(
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    cat_cols: list[str],
+    depths: range | list[int] = range(1, 16),
+    n_splits: int = 5,
+    random_state: int = 42,
+    cv_iterations: int = 200,
+    selection: str = "1sd",
+) -> tuple[int, pd.DataFrame]:
+    """K-fold CV depth selection by mean Spearman ρ on the validation folds.
+
+    `cv_iterations` is smaller than the default 500 to speed up the depth sweep —
+    the relative ranking of depths is stable well before convergence. The final
+    model should be refit at full iterations after selection.
+
+    `selection`:
+        "max" – classic argmax of mean Spearman ρ (strict CV-optimal).
+        "1sd" – Breiman-style parsimony rule: smallest depth whose mean ρ is
+                within one fold-to-fold standard deviation of the maximum.
+                Prefers simpler models when deeper trees give noise-level gains.
+
+    Returns (best_depth, results_df) where results_df is indexed by depth with
+    columns ["mean_rho", "std_rho"]. results_df.attrs["max_depth"] also records
+    the argmax depth so callers can show both.
+    """
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    rows = []
+    for depth in depths:
+        fold_rhos = []
+        for tr_idx, val_idx in kf.split(X_train):
+            m = train_catboost(
+                X_train.iloc[tr_idx], y_train.iloc[tr_idx], cat_cols,
+                depth=depth, iterations=cv_iterations,
+            )
+            rho, _ = spearmanr(y_train.iloc[val_idx], m.predict(X_train.iloc[val_idx]))
+            fold_rhos.append(rho)
+        rows.append({
+            "depth":    int(depth),
+            "mean_rho": round(float(np.mean(fold_rhos)), 4),
+            "std_rho":  round(float(np.std(fold_rhos)),  4),
+        })
+    results = pd.DataFrame(rows).set_index("depth")
+    max_depth = int(results["mean_rho"].idxmax())
+    results.attrs["max_depth"] = max_depth
+
+    if selection == "max":
+        best_depth = max_depth
+    elif selection == "1sd":
+        max_mean = results.loc[max_depth, "mean_rho"]
+        max_std  = results.loc[max_depth, "std_rho"]
+        in_band  = results[results["mean_rho"] >= max_mean - max_std]
+        best_depth = int(in_band.index.min())
+    else:
+        raise ValueError(f"selection must be 'max' or '1sd', got {selection!r}")
+
+    return best_depth, results
+
+
+def fit_surrogate_for_variant(
+    variant: str,
+    processed_dir: Path,
+    artifact_root: Path,
+    cv_depth: bool = True,
+    final_iterations: int = 500,
+    technique: str = "0.0",
+) -> dict:
+    """End-to-end per-variant pipeline used by 05_surrogate_fit.
+
+    Steps: load correct parquet → filter to `pyName == variant` and
+    `modelTechnique == technique` → drop absent/constant features from the
+    variant's `VARIANT_FEATURES` entry → `build_feature_matrix` →
+    stratified 80/20 split on propensity deciles → optional per-variant
+    depth CV → final CatBoost fit at full iterations → save the full
+    artifact set under `artifact_root / variant /`.
+
+    `technique` defaults to "0.0" — the production-decision model Pega
+    actually uses to choose offers (confirmed with the Transavia data
+    team). Every scoring event in the export is evaluated by two
+    parallel techniques: this production model (label degenerate to
+    "0.0" in our exports, almost certainly a gradient-boosted scorer)
+    and a NaiveBayes audit/shadow model. NaiveBayes scores carry online
+    learning state invisible to the surrogate (R² ceiling ~0.4); the
+    production model is feature-deterministic and gives R² ~0.9. See
+    notebook 03 §6.10 for the rationale and breakdown.
+
+    Returns a dict with everything the calling notebook needs for plots
+    and the cross-variant summary (model, y_test, y_pred, importances,
+    sizes, CV result, fidelity metrics).
+    """
+    cfg = VARIANT_FEATURES[variant]
+    src = ("thirdparty_email_outbound.parquet"
+           if variant in THIRDPARTY_VARIANTS
+           else "luggage_email_outbound.parquet")
+
+    df = pd.read_parquet(processed_dir / src)
+    df = df[(df["pyName"] == variant) & (df["modelTechnique"] == technique)].reset_index(drop=True)
+
+    present = [f for f in cfg.features if f in df.columns]
+    active  = [f for f in present if df[f].nunique(dropna=False) > 1]
+    dropped = sorted(set(cfg.features) - set(active))
+
+    X, y, cat_cols, num_cols = build_feature_matrix(df, active, cfg.numeric)
+
+    bins = pd.qcut(y, q=10, labels=False, duplicates="drop")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=bins,
+    )
+
+    if cv_depth:
+        best_depth, cv_results = cv_select_depth(X_train, y_train, cat_cols)
+    else:
+        best_depth, cv_results = 6, None  # train_catboost default
+
+    model    = train_catboost(X_train, y_train, cat_cols,
+                              depth=best_depth, iterations=final_iterations)
+    y_pred   = model.predict(X_test)
+    fidelity = fidelity_suite(y_test.values, y_pred)
+
+    importances = pd.Series(
+        model.get_feature_importance(),
+        index=X_train.columns,
+        name="importance",
+    ).sort_values(ascending=False)
+
+    art_dir = artifact_root / variant
+    art_dir.mkdir(parents=True, exist_ok=True)
+    model.save_model(str(art_dir / "catboost_model.cbm"))
+    (art_dir / "feature_cols.json").write_text(json.dumps(list(X.columns)))
+    (art_dir / "cat_cols.json").write_text(json.dumps(cat_cols))
+    (art_dir / "num_cols.json").write_text(json.dumps(num_cols))
+    np.save(art_dir / "train_idx.npy", X_train.index.to_numpy())
+    np.save(art_dir / "test_idx.npy",  X_test.index.to_numpy())
+    (art_dir / "fidelity.json").write_text(
+        json.dumps({**fidelity, "model": f"CatBoost ({variant})",
+                    "depth": best_depth}, indent=2)
+    )
+
+    return {
+        "variant":     variant,
+        "n":           len(df),
+        "n_train":     len(X_train),
+        "n_test":      len(X_test),
+        "n_features":  X.shape[1],
+        "n_cat":       len(cat_cols),
+        "n_num":       len(num_cols),
+        "dropped":     dropped,
+        "best_depth":  best_depth,
+        "cv_results":  cv_results,
+        "model":       model,
+        "y_test":      y_test,
+        "y_pred":      y_pred,
+        "importances": importances,
+        **fidelity,
+    }

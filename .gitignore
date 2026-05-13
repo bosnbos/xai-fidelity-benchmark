@@ -24,3 +24,7 @@ docs/
 # macOS metadata
 .DS_Store
 **/.DS_Store
+
+# Ad-hoc shell-redirection logs from scripts (e.g. `python scripts/foo.py > out.txt 2> err.txt`)
+scripts/*.txt
+scripts/*.log

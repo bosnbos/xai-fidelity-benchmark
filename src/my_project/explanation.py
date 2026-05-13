@@ -118,8 +118,17 @@ def dt_surrogate(
     n_splits: int = 5,
     random_state: int = 42,
     encoder: OrdinalEncoder | PegaBinEncoder | None = None,
+    selection: str = "1sd",
 ) -> tuple[DecisionTreeRegressor, int, pd.DataFrame, OrdinalEncoder | PegaBinEncoder]:
     """Fit a Decision Tree surrogate via CV depth selection on Spearman ρ.
+
+    `selection`:
+        "max" – classic argmax of mean Spearman ρ.
+        "1sd" – Breiman's parsimony rule: smallest depth whose mean ρ is
+                within one fold-to-fold standard deviation of the max.
+                Matches the rule used for the CatBoost surrogate
+                (`cv_select_depth` in surrogate.py) and aligns with the DT's
+                interpretability goal by favouring shallower trees.
 
     Returns (tree, best_depth, cv_df, encoder).
     cv_df has columns [mean_rho, std_rho] indexed by depth.
@@ -149,7 +158,16 @@ def dt_surrogate(
         })
 
     cv_df = pd.DataFrame(rows).set_index("depth")
-    best_depth = int(cv_df["mean_rho"].idxmax())
+    max_depth = int(cv_df["mean_rho"].idxmax())
+    if selection == "max":
+        best_depth = max_depth
+    elif selection == "1sd":
+        max_mean   = cv_df.loc[max_depth, "mean_rho"]
+        max_std    = cv_df.loc[max_depth, "std_rho"]
+        in_band    = cv_df[cv_df["mean_rho"] >= max_mean - max_std]
+        best_depth = int(in_band.index.min())
+    else:
+        raise ValueError(f"selection must be 'max' or '1sd', got {selection!r}")
 
     tree = DecisionTreeRegressor(max_depth=best_depth, random_state=random_state)
     tree.fit(X_enc, y)

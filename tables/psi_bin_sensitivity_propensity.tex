@@ -1,0 +1,16 @@
+\begin{table}
+\caption{Propensity-PSI sensitivity to bin count. Each row corresponds to a different choice of PSI bin count (equal-frequency on the reference half); columns are the splits used in the main analysis. PSI values rise systematically with bin count, particularly for the temporal split, because Pega ADM's isotonic calibration produces a step-function propensity: increasing the bin count splits clustered values unevenly between the two halves and inflates PSI artificially. This motivates the choice of the bin-free KS statistic on propensity as the $\delta_d$ metric in the main analysis. Route pair 1: ORY$\to$NCE vs ORY$\to$OPO; Route pair 2: ORY$\to$OPO vs NCE$\to$ORY; Route pair 3: NCE$\to$ORY vs TLS$\to$ORY; Culture: fr-FR vs nl-NL.}
+\label{tab:psi_bin_sensitivity_propensity}
+\begin{tabular}{rrrrrr}
+\toprule
+bins & Temporal & Route pair 1 & Route pair 2 & Route pair 3 & Culture \\
+\midrule
+3 & 1.259400 & 0.032000 & 0.034500 & 0.031900 & 0.037000 \\
+4 & 1.009500 & 0.050400 & 0.018900 & 0.027000 & 0.044800 \\
+5 & 4.957900 & 0.040100 & 0.054000 & 0.025100 & 0.068300 \\
+6 & 4.119800 & 0.041400 & 0.061300 & 0.032200 & 0.062200 \\
+7 & 3.649000 & 0.054100 & 0.064300 & 0.055300 & 0.098000 \\
+10 & 6.611200 & 0.049700 & 0.075600 & 0.040900 & 0.111000 \\
+\bottomrule
+\end{tabular}
+\end{table}

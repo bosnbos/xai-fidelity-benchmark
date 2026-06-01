@@ -1,0 +1,21 @@
+\begin{table}[ht]
+\caption{Comparison of candidate metrics for model version churn ($\delta_m$) across all splits. AUC PSI uses equal-frequency bins ($B = 5$) on the modelPerformance distribution. $\Delta\mu_{\text{AUC}}$ is the absolute difference in mean AUC between splits. KS is the two-sample Kolmogorov--Smirnov statistic on the AUC distribution. KS cleanly separates temporal splits (KS $\approx 0.33$--$0.50$, $p \approx 0$) from route splits (KS $\approx 0.04$, $p > 0.39$) and was therefore selected as the $\delta_m$ proxy.}
+\label{tab:metric_selection}
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Split & AUC PSI & $\Delta\mu_{\text{AUC}}$ & KS & KS $p$ \\
+\midrule
+\multicolumn{5}{l}{\textit{Temporal splits}} \\
+L5B15 temporal & 14.076 & 0.001 & 0.433 & $<$0.001 \\
+CLUG temporal & 9.076 & 0.001 & 0.335 & $<$0.001 \\
+BookingDotCom temporal & 14.966 & 0.006 & 0.499 & $<$0.001 \\
+Cartrawler temporal & 14.118 & 0.004 & 0.490 & $<$0.001 \\
+\midrule
+\multicolumn{5}{l}{\textit{Route splits (L5B15)}} \\
+ORY$\to$NCE vs ORY$\to$OPO & 0.013 & 0.000 & 0.040 & 0.394 \\
+ORY$\to$OPO vs NCE$\to$ORY & 0.007 & 0.000 & 0.037 & 0.511 \\
+NCE$\to$ORY vs TLS$\to$ORY & 0.007 & 0.000 & 0.035 & 0.625 \\
+\bottomrule
+\end{tabular}
+\end{table}

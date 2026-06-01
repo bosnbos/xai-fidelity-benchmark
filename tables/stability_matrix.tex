@@ -1,0 +1,18 @@
+\begin{table}[ht]
+\caption{Stability of feature importance rankings across L5B15 splits. $\rho_S$ measures full-ranking consistency; $J_5$ and $J_{10}$ measure top-$k$ overlap. Route pair numbering follows Table~\ref{tab:route_pairs}.}
+\label{tab:stability_l5b15}
+\centering
+\begin{tabular}{l rrr rrr rrr}
+\toprule
+ & \multicolumn{3}{c}{SHAP} & \multicolumn{3}{c}{LIME} & \multicolumn{3}{c}{Decision Tree} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10}
+Split & $\rho_S$ & $J_5$ & $J_{10}$ & $\rho_S$ & $J_5$ & $J_{10}$ & $\rho_S$ & $J_5$ & $J_{10}$ \\
+\midrule
+Temporal & 0.996 & 1.000 & 1.000 & 0.989 & 1.000 & 0.818 & 0.855 & 0.667 & 0.667 \\
+Route pair 1 & 0.994 & 1.000 & 1.000 & 0.986 & 0.667 & 0.818 & 0.510 & 0.429 & 0.538 \\
+Route pair 2 & 0.990 & 1.000 & 0.818 & 0.858 & 1.000 & 0.818 & 0.584 & 0.250 & 0.667 \\
+Route pair 3 & 0.987 & 0.667 & 0.818 & 0.992 & 1.000 & 1.000 & 0.817 & 0.667 & 0.667 \\
+Culture (FR / NL) & 0.958 & 0.667 & 1.000 & 0.949 & 1.000 & 0.667 & 0.666 & 0.429 & 0.667 \\
+\bottomrule
+\end{tabular}
+\end{table}

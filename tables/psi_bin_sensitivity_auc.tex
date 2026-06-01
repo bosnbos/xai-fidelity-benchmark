@@ -1,0 +1,16 @@
+\begin{table}
+\caption{AUC-PSI sensitivity to bin count. Same construction as Table~\ref{tab:psi_bin_sensitivity_propensity} but applied to the \texttt{modelPerformance} (AUC) distribution. AUC-PSI is more stable across bin choices than propensity-PSI; PSI would have been an acceptable $\delta_m$ proxy on this distribution. Jaccard overlap on model versions is preferred in the main analysis because it answers the snapshot-overlap question directly without forcing a categorical mixture identifier into a continuous-distance frame. Route pair 1: ORY$\to$NCE vs ORY$\to$OPO; Route pair 2: ORY$\to$OPO vs NCE$\to$ORY; Route pair 3: NCE$\to$ORY vs TLS$\to$ORY; Culture: fr-FR vs nl-NL.}
+\label{tab:psi_bin_sensitivity_auc}
+\begin{tabular}{rrrrrr}
+\toprule
+bins & Temporal & Route pair 1 & Route pair 2 & Route pair 3 & Culture \\
+\midrule
+3 & 9.468600 & 0.018800 & 0.004600 & 0.009600 & 0.005800 \\
+4 & 11.911700 & 0.062800 & 0.034500 & 0.021500 & 0.007200 \\
+5 & 14.202100 & 0.052400 & 0.055100 & 0.034400 & 0.006500 \\
+6 & 12.429300 & 0.061100 & 0.048800 & 0.038200 & 0.007600 \\
+7 & 13.936800 & 0.078300 & 0.063100 & 0.035000 & 0.006800 \\
+10 & 14.061900 & 0.096300 & 0.058200 & 0.074800 & 0.008200 \\
+\bottomrule
+\end{tabular}
+\end{table}

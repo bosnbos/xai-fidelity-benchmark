@@ -25,12 +25,63 @@ Run in order. **01 and 02b are independent.** Notebooks 03–08 all require 02 f
 | `04_surrogate_selection.ipynb` | Surrogate architecture selection on L5B15: Linear / GaussianNB / RandomForest / LightGBM / CatBoost on the full fidelity suite | `02` |
 | `05_surrogate_fit.ipynb` | Refit the selected CatBoost per offer variant; saves per-variant artifacts + cross-variant fidelity table for the Results chapter | `02`, `04` |
 | `06_explanation.ipynb` | DT (§9), SHAP (§10), LIME (§11), cross-method rank comparison (§12) | `02`, `05` |
-| `07_stability.ipynb` | Stability across temporal and route splits: Spearman ρ, Jaccard@k; within-route DT bootstrap | `02`, `05`, `06` |
-| `08_attribution.ipynb` | Instability decomposition into δ_d, δ_m, δ_e; PSI bin sensitivity analysis | `02`, `05`, `06`, `07` |
+| `07_stability.ipynb` | Stability across temporal, route, and culture splits: Spearman ρ, Jaccard@k; within-sample DT bootstrap | `02`, `05`, `06` |
+| `08_attribution.ipynb` | Instability decomposition into δ_d (KS), δ_m (J_v), δ_e^DT, δ_e^LIME; PSI bin-sensitivity diagnostics | `02`, `05`, `06`, `07` |
+| `08b_attribution_replication.ipynb` | RQ4 — same attribution pipeline applied to CLUG, BookingDotCom, Cartrawler | `02`, `02b`, `05`, `06`, `07` |
 
 ### Adding new data
 
 Drop new Pega decision JSON exports into `data/decisions/` and re-run `02_data_ingestion.ipynb`. It picks up all files in that folder, deduplicates on `modelExecutionID`, and overwrites the parquet.
+
+---
+
+## Thesis tables
+
+All thesis-ready LaTeX tables are produced by **`scripts/build_thesis_tables.py`**, which reads the JSON / CSV artefacts saved by the notebooks (in `data/artifacts/`) and writes the `.tex` files into the repo-root **`tables/`** folder. Everything ends up in one flat directory so you can drag-and-drop the whole folder into an Overleaf project's `tables/`.
+
+The notebooks compute and persist numbers (JSON / CSV); the script handles all formatting (captions, column headers, rounding). Separating the two means thesis-table tweaks never require re-running expensive notebook computations.
+
+```bash
+uv run python scripts/build_thesis_tables.py            # rebuild every table
+uv run python scripts/build_thesis_tables.py --list     # list available targets
+uv run python scripts/build_thesis_tables.py attribution_l5b15 stability_matrix
+```
+
+**Run the script whenever:**
+- you re-run a notebook and want the corresponding `.tex` refreshed (numbers changed)
+- you tweak a caption, column header, or rounding inside the script (formatting changed)
+
+You do **not** need to re-run notebooks just to update tables — the script reads the already-saved CSV/JSON. Notebooks only need a re-run when the underlying analysis changes (new data, hyperparameter tweak, model refit, new metric).
+
+**Main-text tables**
+
+| Target | Reads (under `data/artifacts/`) | Writes (under `tables/`) |
+|---|---|---|
+| `surrogate_fidelity` | `surrogate_fidelity_per_variant.csv` | `surrogate_fidelity_per_variant.tex` |
+| `rq1_explainer_fidelity` | `rq1_explainer_fidelity.csv` | `rq1_explainer_fidelity.tex` |
+| `stability_matrix` | `l5b15/stability_summary.json` | `stability_matrix.tex` |
+| `attribution_l5b15` | `l5b15/attribution_summary.json` | `attribution_summary.tex` |
+| `attribution_replication` | `attribution_summary_replication.json` | `attribution_summary_replication.tex` |
+
+**Appendix tables** (in narrative order)
+
+| Target | Reads (under `data/artifacts/`) | Writes (under `tables/`) |
+|---|---|---|
+| `missingness` | `missingness.csv` (produced by `scripts/build_missingness_table.py`) | `missingness.tex` |
+| `depth_sensitivity` | `l5b15/depth_sensitivity_table.csv` | `depth_sensitivity_table.tex` |
+| `metric_selection` | `metric_selection.csv` (produced by `scripts/build_metric_selection_table.py`) | `metric_selection.tex` |
+| `surrogate_comparison` | `l5b15/surrogate_comparison.csv` | `surrogate_comparison.tex` |
+| `psi_propensity` | `l5b15/psi_bin_sensitivity_propensity.csv` | `psi_bin_sensitivity_propensity.tex` |
+| `psi_auc` | `l5b15/psi_bin_sensitivity_auc.csv` | `psi_bin_sensitivity_auc.tex` |
+| `jaccard_sensitivity` | `l5b15/attribution_summary.json` | `jaccard_threshold_sensitivity.pdf` + `.png` (figure, not table) |
+| `bootstrap_dt_summary` | `l5b15/bootstrap_dt_routes.json` | `bootstrap_dt_summary.tex` |
+| `top10_per_split` | `l5b15/top10_per_split.csv` | `top10_per_split.tex` |
+
+Default rounding is 3 decimal places; RMSE keeps 4 dp because some variants are near $10^{-4}$.
+
+**Overleaf workflow:** upload (or drag-and-drop) the contents of `tables/` into a folder of the same name in the Overleaf project, then reference any table with `\input{tables/<name>}`.
+
+`rq1_explainer_fidelity.csv` itself is built by `scripts/build_rq1_table.py` (it joins per-variant `fidelity.json` and `dt_model.pkl`); run that once when surrogate/DT models change, then `build_thesis_tables.py` for the LaTeX.
 
 ---
 
@@ -150,25 +201,35 @@ Pega ADM uses Naive Bayes internally. We train a CatBoost surrogate on Pega's ou
 
 ### Instability decomposition (RQ3)
 
-Observed instability Δπ is decomposed as:
+Observed instability between two splits is decomposed into three sources, each measured with a metric matched to the underlying object:
 
-```
-Δπ_DT  =  δ_d  +  δ_m  +  δ_e        (DT is sensitive to all three)
-Δπ_SHAP ≈  δ_d  +  δ_m               (SHAP proxies system-level shift)
-δ_e    =  Δπ_DT − Δπ_SHAP            (residual = explainer sensitivity)
-```
+| Source | Metric | Threshold (significant) |
+|---|---|---|
+| **δ_d** (data drift) | Kolmogorov–Smirnov statistic on the propensity score distribution (bin-free, non-parametric) | KS ≥ 0.10 |
+| **δ_m** (model churn) | Jaccard overlap on the set of `modelVersion` IDs active in each split (lower = more churn) | J_v ≤ 0.10 |
+| **δ_e** (explainer sensitivity) | Decomposed into two mechanisms vs SHAP as the deterministic reference, see below | reported, not classified |
 
-- **δ_d** (data drift) — PSI on propensity score distribution (5 equal-frequency bins)
-- **δ_m** (model churn) — PSI on modelPerformance (AUC) distribution between splits
-- **δ_e** (explainer sensitivity) — DT residual after accounting for δ_d + δ_m
+**Why KS over PSI.** Pega ADM's isotonic calibration produces a step-function propensity (clustered values), which makes PSI bin-sensitive — increasing the bin count inflates PSI artificially. KS operates directly on empirical CDFs with no binning parameter. The bin-sensitivity check is documented in `08_attribution.ipynb` §A1 and exported as `psi_bin_sensitivity_propensity.tex`.
 
-Route subgroups act as a controlled natural experiment: shared time window (same model snapshots active) keeps δ_m ≈ 0 and δ_d low, isolating δ_e. A within-route DT bootstrap (N=10 seeds) validates that between-route instability exceeds DT fitting noise.
+**Why Jaccard over PSI-on-AUC.** Pega's `modelPerformance` field is effectively a categorical snapshot identifier with heavy ties, not a continuous performance measurement. Jaccard answers the actual question (snapshot overlap between splits) directly; the threshold ≤ 0.10 sits in an empty band of the bimodal J_v distribution and classifications are invariant for τ ∈ [0.05, 0.40] (§A4). Note that J_v measures *snapshot turnover* rather than parameter shift directly, since UUIDs rotate on every micro-update; for same-window splits the production scorer uses the same active snapshots by construction, so any reasonable churn proxy returns ≈ 0 there.
+
+**Two mechanisms of explainer sensitivity.** SHAP is the reference because TreeSHAP is deterministic given a fixed CatBoost surrogate. The other two explainers are compared against it:
+
+- **δ_e^DT = ρ_SHAP − ρ_DT** — DT *refit sensitivity*: the tree structure is re-fitted independently on each split.
+- **δ_e^LIME = ρ_SHAP − ρ_LIME** — LIME *sampling sensitivity*: LIME shares the fixed-surrogate property with SHAP, so any gap is local-perturbation noise, not refit.
+
+Both gaps are reported as descriptive evidence; **the classifier uses only KS_prop and J_v**. A large δ_e^DT validates an "Explainer" label; a small δ_e^DT qualifies a "Dist. shift" / "Model churn" / "Both" label as also clean of explainer effects.
+
+**Effect-size only.** With n in the thousands per split, p-values are sample-size driven and uninformative. The KS statistic and Jaccard overlap *are* the effect sizes; we threshold them directly.
 
 ### Evaluation splits
 
 - **Temporal** — early vs late window within each variant's data range
-- **Route subgroups** — top routes by volume (`DepartureAirport × DestinationAirport`)
+- **Route subgroups** — top 4 routes by volume (`DepartureAirport × DestinationAirport`): ORY→NCE, ORY→OPO, NCE→ORY, TLS→ORY, paired adjacently
+- **Culture** — fr-FR vs nl-NL bookings (shares same time window, like route splits)
 - **Replication variants** — CLUG, BookingDotCom, Cartrawler (same pipeline as L5B15)
+
+Route and culture splits share the production model snapshots by construction (same time window) and act as a controlled natural experiment: δ_m ≈ 0 and δ_d typically small, isolating δ_e. A within-sample DT bootstrap (N=10 seeds per sub-sample) validates that observed between-split instability exceeds DT refit noise (§14b/d in `07_stability.ipynb`, summary in `bootstrap_dt_summary.tex`).
 
 ---
 

@@ -1,0 +1,16 @@
+\begin{table}[ht]
+\caption{Surrogate architecture comparison on the L5B15 held-out test set (stratified 80/20 split). Five candidates are evaluated on rank-based fidelity (Spearman~$\rho$, Kendall~$\tau$), pointwise accuracy ($R^2$, RMSE), and distributional alignment (KS statistic). Best value per metric in bold.}
+\label{tab:surrogate_comparison}
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+Model & $R^2$ & RMSE & Spearman $\rho$ & Kendall $\tau$ & KS statistic \\
+\midrule
+Linear regression & 0.469 & 0.0070 & 0.736 & 0.534 & 0.221 \\
+Naive Bayes & 0.368 & 0.0077 & 0.862 & 0.658 & 0.268 \\
+Random Forest & 0.761 & 0.0047 & \textbf{0.934} & 0.788 & 0.139 \\
+LightGBM & 0.838 & 0.0039 & 0.924 & 0.779 & \textbf{0.090} \\
+CatBoost & \textbf{0.927} & \textbf{0.0026} & 0.933 & \textbf{0.798} & 0.154 \\
+\bottomrule
+\end{tabular}
+\end{table}

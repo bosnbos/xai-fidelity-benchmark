@@ -28,3 +28,22 @@ docs/
 # Ad-hoc shell-redirection logs from scripts (e.g. `python scripts/foo.py > out.txt 2> err.txt`)
 scripts/*.txt
 scripts/*.log
+
+# LaTeX build artifacts (pdflatex / latexmk / beamer)
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+*.bbl
+*.blg
+*.run.xml
+*.bcf
+texput.log
+
+# Pega Health Check exports (large HTML reports, kept locally only)
+healthCheckDir/

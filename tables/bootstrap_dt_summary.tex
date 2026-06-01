@@ -1,0 +1,16 @@
+\begin{table}
+\caption{Within-sample DT reproducibility versus observed between-split $\rho_S^{\mathrm{DT}}$. For each sub-sample the DT surrogate was re-fitted on identical data with $N=10$ random seeds, yielding 45 pairwise Spearman~$\rho$ values per sub-sample. Within (mean) is the average of those means across the two sub-samples of each split. Gap $=$ Within $-$ Between. Classification: $>0.10$ genuine signal; $0.03$ to $0.10$ small effect; $\leq 0.03$ indistinguishable from refit noise. Raw pairwise values are in \path{data/artifacts/l5b15/bootstrap_dt_routes.json}.}
+\label{tab:bootstrap_dt}
+\begin{tabular}{lrrrl}
+\toprule
+Split & Within (mean) & Between & Gap & Classification \\
+\midrule
+ORY$\to$NCE vs ORY$\to$OPO & 0.824 & 0.510 & +0.314 & Genuine signal \\
+ORY$\to$OPO vs NCE$\to$ORY & 0.789 & 0.584 & +0.206 & Genuine signal \\
+NCE$\to$ORY vs TLS$\to$ORY & 0.802 & 0.817 & -0.015 & Within noise floor \\
+Temporal (early vs late) & 0.935 & 0.855 & +0.080 & Small effect \\
+Culture (fr-FR vs nl-NL) & 0.977 & 0.666 & +0.310 & Genuine signal \\
+Routes (aggregate) & 0.813 & 0.637 & +0.176 & Genuine signal \\
+\bottomrule
+\end{tabular}
+\end{table}

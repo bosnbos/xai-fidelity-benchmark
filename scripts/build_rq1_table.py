@@ -10,14 +10,16 @@ For every variant in {L5B15, CLUG, BookingDotCom, Cartrawler}:
 
 Saves:
   data/artifacts/rq1_explainer_fidelity.csv
-  data/artifacts/rq1_explainer_fidelity.tex   (booktabs-style LaTeX)
 
 The CatBoost row covers both SHAP and LIME because both methods anchor on the
 same surrogate; their predictive fidelity to Pega ADM is therefore identical
 to the surrogate's. This is noted in the table caption.
 
+The thesis LaTeX table is produced by `scripts/build_thesis_tables.py`
+(target: `rq1_explainer_fidelity`), which reads the CSV written here.
+
 Run from repo root:
-    .venv/bin/python scripts/build_rq1_table.py
+    uv run python scripts/build_rq1_table.py
 """
 from __future__ import annotations
 
@@ -117,37 +119,8 @@ def main() -> int:
     out_csv = ART_ROOT / "rq1_explainer_fidelity.csv"
     rq1_df.to_csv(out_csv, index=False)
     print(f"\nSaved → {out_csv}")
-
-    # LaTeX (Styler.to_latex(hrules=True) — pandas 3.x dropped booktabs= from DataFrame.to_latex)
-    latex_table = (
-        rq1_df.style
-        .format({"R²": "{:.4f}", "RMSE": "{:.6f}",
-                 "Spearman ρ": "{:.4f}", "Kendall τ": "{:.4f}",
-                 "KS": "{:.4f}"})
-        .hide(axis="index")
-        .set_caption(
-            "Predictive fidelity to Pega ADM propensity scores per variant, on the "
-            "held-out 20\\%. The Decision Tree is fit directly to the logged scores; "
-            "the CatBoost row applies to both SHAP and LIME, which explain the same "
-            "surrogate and therefore share its predictive fidelity to Pega. "
-            "R$^2$ and RMSE measure absolute-value agreement; "
-            "Spearman $\\rho$ and Kendall $\\tau$ measure rank agreement; "
-            "the Kolmogorov-Smirnov statistic measures distributional agreement "
-            "(lower is better, 0 = identical distributions)."
-        )
-        .to_latex(hrules=True, label="tab:rq1_explainer_fidelity")
-    )
-    # Convert Unicode Greek/super chars to LaTeX math for paste-into-thesis use.
-    latex_table = (latex_table
-        .replace("ρ", r"$\rho$")
-        .replace("τ", r"$\tau$")
-        .replace("²", r"$^2$"))
-
-    out_tex = ART_ROOT / "rq1_explainer_fidelity.tex"
-    out_tex.write_text(latex_table)
-    print(f"Saved → {out_tex}")
-    print()
-    print(latex_table)
+    print("LaTeX table: run `uv run python scripts/build_thesis_tables.py "
+          "rq1_explainer_fidelity` to regenerate the .tex.")
     return 0
 
 

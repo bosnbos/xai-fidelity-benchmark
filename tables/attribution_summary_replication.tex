@@ -1,0 +1,35 @@
+\begin{table}[ht]
+\caption{RQ4 replication: attribution summary for CLUG, BookingDotCom, and Cartrawler, grouped by split. Routes are pinned to the L5B15 set (ORY$\to$NCE, ORY$\to$OPO, NCE$\to$ORY, TLS$\to$ORY) for direct comparability. Metric definitions and thresholds match Table~\ref{tab:attribution_l5b15}: $\delta_d$ from the Kolmogorov--Smirnov statistic on propensity, flagged if $\geq 0.10$; $\delta_m$ from Jaccard overlap on the set of active model versions, flagged if $\leq 0.10$. $\delta_e^{\mathrm{DT}}$ and $\delta_e^{\mathrm{LIME}}$ are descriptive and not used for source classification.}
+\label{tab:attribution_replication}
+\centering
+\begin{tabular}{lrrrrl}
+\toprule
+Variant & $\delta_d$ & $\delta_m$ & $\delta_e^{\mathrm{DT}}$ & $\delta_e^{\mathrm{LIME}}$ & Source \\
+\midrule
+\multicolumn{6}{l}{\textit{Temporal splits}} \\
+CLUG & 0.390 & 0.002 & 0.421 & 0.005 & Both \\
+BookingDotCom & 0.246 & 0.002 & 0.166 & 0.006 & Both \\
+Cartrawler & 0.721 & 0.002 & 0.373 & 0.025 & Both \\
+\midrule
+\multicolumn{6}{l}{\textit{Route pair 1 (ORY$\to$NCE vs ORY$\to$OPO)}} \\
+CLUG & 0.052 & 0.406 & 0.363 & 0.015 & Explainer \\
+BookingDotCom & 0.116 & 0.416 & 0.711 & -0.036 & Dist. shift \\
+Cartrawler & 0.079 & 0.404 & 0.512 & 0.009 & Explainer \\
+\midrule
+\multicolumn{6}{l}{\textit{Route pair 2 (ORY$\to$OPO vs NCE$\to$ORY)}} \\
+CLUG & 0.116 & 0.404 & 0.266 & 0.197 & Dist. shift \\
+BookingDotCom & 0.224 & 0.352 & 0.471 & -0.024 & Dist. shift \\
+Cartrawler & 0.059 & 0.361 & 0.757 & 0.367 & Explainer \\
+\midrule
+\multicolumn{6}{l}{\textit{Route pair 3 (NCE$\to$ORY vs TLS$\to$ORY)}} \\
+CLUG & 0.069 & 0.426 & 0.490 & 0.015 & Explainer \\
+BookingDotCom & 0.062 & 0.396 & 0.333 & -0.010 & Explainer \\
+Cartrawler & 0.062 & 0.376 & 0.571 & 0.010 & Explainer \\
+\midrule
+\multicolumn{6}{l}{\textit{Culture (fr-FR vs nl-NL)}} \\
+CLUG & 0.114 & 0.464 & 0.383 & -0.017 & Dist. shift \\
+BookingDotCom & 0.718 & 0.529 & 0.054 & -0.060 & Dist. shift \\
+Cartrawler & 0.689 & 0.564 & 0.177 & 0.352 & Dist. shift \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,19 @@
+\begin{table}[ht]
+\caption{Feature groups, descriptions, and mean missingness profile across all analysed offer variants. Active predictor counts ($n$) vary because Pega ADM selects predictors independently per model based on evidential contribution. Customer attributes appear only in the BookingDotCom variant. BDC = BookingDotCom; CTL = Cartrawler.}
+\label{tab:missingness}
+\centering
+\scriptsize
+\begin{tabular}{lp{3.2cm}rrrrrrrr}
+\toprule
+ & & \multicolumn{2}{c}{L5B15} & \multicolumn{2}{c}{CLUG} & \multicolumn{2}{c}{BDC} & \multicolumn{2}{c}{CTL} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10}
+Feature group & Description & $n$ & Miss. & $n$ & Miss. & $n$ & Miss. & $n$ & Miss. \\
+\midrule
+Booking context & Fare class, journey type, product class, culture & 9 & 0.5\% & 7 & 0.7\% & 7 & 0.6\% & 8 & 1.0\% \\
+Flight data & Route, operator, aircraft type & 2 & 1.1\% & 4 & 1.5\% & 4 & 2.0\% & 4 & 2.1\% \\
+Contact history & Contact frequency and recency across channels & 11 & 41.6\% & 10 & 44.6\% & 18 & 57.4\% & 10 & 54.3\% \\
+Scoring parameters & Parameters passed at scoring time & 1 & -- & 1 & -- & 1 & -- & 3 & -- \\
+Customer attributes & Demographics and loyalty profile & -- & -- & -- & -- & 3 & 0.0\% & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}

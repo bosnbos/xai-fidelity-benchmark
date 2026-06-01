@@ -1,0 +1,18 @@
+\begin{table}
+\caption{Predictive fidelity to Pega ADM propensity scores per variant, on the held-out 20\%. The Decision Tree is fit directly to the logged scores; the CatBoost row applies to both SHAP and LIME, which explain the same surrogate and therefore share its predictive fidelity to Pega. R$^2$ and RMSE measure absolute-value agreement; Spearman~$\rho$ and Kendall~$\tau$ measure rank agreement; the Kolmogorov--Smirnov statistic measures distributional agreement (lower is better, 0 = identical distributions).}
+\label{tab:rq1_explainer_fidelity}
+\begin{tabular}{llrrrrr}
+\toprule
+Variant & Method & R$^2$ & RMSE & Spearman $\rho$ & Kendall $\tau$ & KS \\
+\midrule
+L5B15 & Decision Tree & 0.604 & 0.0061 & 0.924 & 0.778 & 0.230 \\
+L5B15 & CatBoost (SHAP + LIME) & 0.927 & 0.0026 & 0.933 & 0.798 & 0.154 \\
+CLUG & Decision Tree & 0.871 & 0.0044 & 0.906 & 0.765 & 0.282 \\
+CLUG & CatBoost (SHAP + LIME) & 0.954 & 0.0026 & 0.919 & 0.779 & 0.182 \\
+BookingDotCom & Decision Tree & 0.226 & 0.0003 & 0.550 & 0.400 & 0.254 \\
+BookingDotCom & CatBoost (SHAP + LIME) & 0.792 & 0.0002 & 0.949 & 0.811 & 0.072 \\
+Cartrawler & Decision Tree & 0.170 & 0.0015 & 0.318 & 0.226 & 0.463 \\
+Cartrawler & CatBoost (SHAP + LIME) & 0.911 & 0.0005 & 0.615 & 0.457 & 0.313 \\
+\bottomrule
+\end{tabular}
+\end{table}

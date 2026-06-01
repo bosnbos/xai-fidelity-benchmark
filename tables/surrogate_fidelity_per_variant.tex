@@ -1,0 +1,14 @@
+\begin{table}
+\caption{Per-variant CatBoost surrogate fidelity on the held-out 20\%. CV-max is the depth maximising 5-fold CV Spearman~$\rho$; Depth is the 1-SD parsimony pick actually used for the final model fit.}
+\label{tab:surrogate_fidelity_per_variant}
+\begin{tabular}{lrrrrrrrr}
+\toprule
+Variant & n & CV-max & Depth & R$^2$ & RMSE & Spearman $\rho$ & Kendall $\tau$ & KS statistic \\
+\midrule
+L5B15 & 31,709 & 12 & 10 & 0.927 & 0.0026 & 0.933 & 0.798 & 0.154 \\
+CLUG & 16,984 & 10 & 7 & 0.954 & 0.0026 & 0.919 & 0.779 & 0.182 \\
+BookingDotCom & 19,866 & 11 & 9 & 0.792 & 0.0002 & 0.949 & 0.811 & 0.072 \\
+Cartrawler & 20,645 & 13 & 12 & 0.911 & 0.0005 & 0.615 & 0.457 & 0.313 \\
+\bottomrule
+\end{tabular}
+\end{table}

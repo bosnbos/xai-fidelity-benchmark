@@ -1,0 +1,15 @@
+\begin{table}
+\caption{L5B15 instability attribution. $\delta_d$ is the Kolmogorov--Smirnov statistic on the propensity distribution; flagged if $\geq 0.10$. $\delta_m$ is the Jaccard overlap on the set of model versions active in each sub-population; flagged if $\leq 0.10$. $\delta_e^{\mathrm{DT}} = \rho_{\mathrm{SHAP}} - \rho_{\mathrm{DT}}$ and $\delta_e^{\mathrm{LIME}} = \rho_{\mathrm{SHAP}} - \rho_{\mathrm{LIME}}$ are the refit and sampling sensitivity gaps respectively; both are descriptive and not used for source classification. Source assignment follows Table~\ref{tab:attribution_rule}.}
+\label{tab:attribution_l5b15}
+\begin{tabular}{lrrrrl}
+\toprule
+Split & $\delta_d$ & $\delta_m$ & $\delta_e^{\mathrm{DT}}$ & $\delta_e^{\mathrm{LIME}}$ & Source \\
+\midrule
+L5B15 temporal & 0.356 & 0.002 & 0.141 & 0.007 & Both \\
+Route pair 1 (ORY$\to$NCE vs ORY$\to$OPO) & 0.099 & 0.481 & 0.484 & 0.008 & Explainer \\
+Route pair 2 (ORY$\to$OPO vs NCE$\to$ORY) & 0.094 & 0.547 & 0.406 & 0.132 & Explainer \\
+Route pair 3 (NCE$\to$ORY vs TLS$\to$ORY) & 0.086 & 0.525 & 0.171 & -0.005 & Explainer \\
+Culture (fr-FR vs nl-NL) & 0.081 & 0.595 & 0.291 & 0.009 & Explainer \\
+\bottomrule
+\end{tabular}
+\end{table}

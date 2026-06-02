@@ -101,7 +101,9 @@
 \counterwithout{figure}{chapter} % enforce continuous numbering of figures throughout manuscript
 \counterwithout{table}{chapter}	% enforce continuous numbering of tables throughout manuscript
 
-\chapter{Introduction}	% use of star suppresses numbering of sections/headings 
+\chapter{Introduction}	% use of star suppresses numbering of sections/headings
+
+\section{Motivation and Background}
 
 % Ai driven decisioning and propensity models
 The deployment of AI-driven Customer Decision Hubs (CDHs) has fundamentally reshaped how organisations personalise customer interactions at scale. In industries such as telecommunications, retail banking, and aviation, companies increasingly rely on automated systems to determine the Next-Best-Actions(NBAs) to select in real time which offer, message, or service to present to each individual customer at the optimal time. Central to these systems are propensity models: predictive models that estimate the likelihood of a customer accepting a given offer. Within platforms such as Pega CDH propensity scores are combined with contextual weighting and economic values levers to drive fully automated offer prioritization\parencite{pega_prioritizing_2025}. While these systems have been shown to improve commercial outcomes, their predictive componentsare frequently complex, non-linear models that offer little transparency into why a given score was produced. This creates concrete problems for marketing and governance stakeholders, who must trust, audit, and act on model outputs without being able to inspect the reasoning behind them. It is precisely this tension between predictive power and interpretability that has driven the rapid growth of Explainable AI (XAI) as a field \parencite{vilone_explainable_2020}, and that motivates the present research.
@@ -118,32 +120,34 @@ Evaluating explanations in production CDH environments is non-trivial for three 
 % this thesis: 
 This thesis addresses these challenges by providing a structured empirical evaluation of post-hoc explanation methods applied to offer-level propensity models within a real-world airline CDH environment. Treating the production system as a black-box prediction function, we compare three explanation families representing fundamentally different approaches to explanation: additive attribution, local approximation, and global approximation. Specifically, we study SHAP, which decomposes predictions into feature contributions; LIME, which approximates model behavior locally around individual predictions; and rule-based surrogate models, which summarize overall model behavior through interpretable decision rules. The production propensity model is accessed exclusively through its logged output scores, reflecting the realistic constraint that model internals and live APIs are inaccessible to practitioners. Crucially, the model is not treated as fixed: the continuous updating behaviour of Pega ADM is incorporated into the evaluation design rather than controlled away.
 
-Because the observational and exposure-biased nature of CDH data makes causal ground truth inaccessible, evaluation focuses on fidelity, defined as how accurately explanations reflect the model’s predictions, and stability across temporal splits, route subgroups, and customer culture cohorts. Finally, observed explanation instability is not automatically attributed to the explanation method: by monitoring the black-box propensity score distribution with a Kolmogorov--Smirnov statistic and tracking model snapshot overlap via Jaccard similarity on the \texttt{modelVersion} set, the observed explanation instability is decomposed into three sources: explainer sensitivity, feature distribution shift, and model version churn.
+Because the observational and exposure-biased nature of CDH data makes causal ground truth inaccessible, evaluation focuses on fidelity, defined as how accurately explanations reflect the model’s predictions, and stability across temporal splits, route subgroups, and customer culture cohorts. Finally, observed explanation instability is not automatically attributed to the explanation method: by monitoring the black-box propensity score distribution with a Kolmogorov--Smirnov statistic and tracking model snapshot overlap via Jaccard similarity on the set of active model-version identifiers, the observed explanation instability is decomposed into three sources: explainer sensitivity, feature distribution shift, and model version churn.
 
-\vspace{1em}
-
-\noindent\textbf{Research Problem}
+\section{Research Problem and Questions}
 
 \noindent This thesis investigates whether post-hoc explanation methods produce faithful and stable outputs when applied to a continuously self-updating propensity model in a production airline CDH environment, and proposes a diagnostic protocol for attributing observed explanation instability to its source.
 
 \vspace{0.8em}
-\noindent This problem is addressed through four research questions:
+\noindent This problem is addressed through five research questions:
 
 \begin{itemize}
 \item[\textbf{RQ1}] How accurately do the prediction models underlying each explanation method reproduce the Pega propensity scores on a held-out test set, as measured by a suite of rank-based, pointwise, and distributional fidelity metrics?
 \item[\textbf{RQ2}] How consistent are the feature rankings produced by each explanation method across temporal, route, and customer culture splits, as measured by Spearman rank correlation and Jaccard similarity?
 \item[\textbf{RQ3}] When feature attribution rankings shift across splits, what is the dominant source: changes in the underlying Pega model, shifts in the input data distribution, or sensitivity of the explanation method itself?
 \item[\textbf{RQ4}] Do the fidelity and stability patterns observed for the primary luggage offer model replicate across three further offer variants, including a generic luggage offer and two third-party partner offers in different product categories, each governed by its own independently-updating Pega instance?
+\item[\textbf{RQ5}] Which features most strongly drive the offer-level propensity scores, how does importance distribute across feature groups, and what do the resulting attributions imply for marketing strategy and data governance in a production CDH?
 \end{itemize}
 
-\vspace{1em}
+\noindent Where RQ1--RQ4 evaluate the explanation methods themselves, RQ5 turns to the \emph{content} of the explanations: what the production model has in fact learned to score on, and what that implies for the marketing and governance stakeholders who must act on its outputs.
 
+\section{Contributions}
 
-%contributions 
-This thesis makes contributions at two levels. Methodologically, we propose a reusable evaluation protocol for assessing explanation fidelity and stability in observational CDH environments, combining surrogate approximation error with a three-way instability attribution. The primary methodological contribution is a structured instability attribution protocol that decomposes observed explanation ranking shifts into three sources: explainer sensitivity, feature distribution shift (monitored via the two-sample Kolmogorov--Smirnov statistic on the propensity score distribution), and model version churn (proxied by the Jaccard overlap on the set of active \texttt{modelVersion} identifiers). This three-way diagnostic allows practitioners to assign instability to its source rather than conflating them, which to our knowledge has not been operationalised in this form within CDH evaluation frameworks. Additionally, findings are replicated across two further luggage add-on offer variants, each governed by its own independently-updating Pega ADM instance, providing a cross-model generalization check on whether explanation fidelity and stability are offer-specific or consistent across models sharing the same feature space. Empirically, the study provides the first systematic comparison of post-hoc explanation methods applied to Pega ADM propensity scores under production conditions, reporting fidelity and stability results under the specific combination of continuous model updating, categorical-heavy feature spaces, and sparse interaction histories that characterise real CDH deployments.
+%contributions
+This thesis makes contributions at two levels. Methodologically, we propose a reusable evaluation protocol for assessing explanation fidelity and stability in observational CDH environments, combining surrogate approximation error with a three-way instability attribution. The primary methodological contribution is a structured instability attribution protocol that decomposes observed explanation ranking shifts into three sources: explainer sensitivity, feature distribution shift (monitored via the two-sample Kolmogorov--Smirnov statistic on the propensity score distribution), and model version churn (proxied by the Jaccard overlap on the set of active model-version identifiers). This three-way diagnostic allows practitioners to assign instability to its source rather than conflating them, which to our knowledge has not been operationalised in this form within CDH evaluation frameworks. Additionally, findings are replicated across two further luggage add-on offer variants, each governed by its own independently-updating Pega ADM instance, providing a cross-model generalization check on whether explanation fidelity and stability are offer-specific or consistent across models sharing the same feature space. Empirically, the study provides the first systematic comparison of post-hoc explanation methods applied to Pega ADM propensity scores under production conditions, reporting fidelity and stability results under the specific combination of continuous model updating, categorical-heavy feature spaces, and sparse interaction histories that characterise real CDH deployments. Beyond the methodological evaluation, the study reports the substantive attribution findings themselves: which feature groups drive the offer-propensity scores, and two implications of direct commercial relevance, namely that the model scores recency and contact-fatigue rather than customer identity, and that one of its most influential predictors encodes data missingness rather than behaviour.
+
+\section{Thesis Outline}
 
 %Thesis outline
-The remainder of this thesis is structured as follows. Chapter \ref{Methodology} presents the data and methodology, covering the empirical setting and decisioning logs, the offer portfolio and feature namespaces, surrogate model design, the fidelity and stability evaluation protocol, and the three-way instability attribution procedure. Chapter \ref{ch:results} reports empirical results organised by research question, from fidelity assessment through temporal and route-level stability analysis to instability attribution and cross-offer replication. Chapter \ref{Discussion} discusses findings in relation to the broader XAI literature, reflects on limitations arising from the observational data structure, continuous model updating, and restricted model access, and considers implications for practitioners deploying XAI in production decisioning systems. Chapter \ref{Conclusion} concludes and identifies directions for future research.
+The remainder of this thesis is structured as follows. Chapter \ref{Methodology} presents the data and methodology, covering the empirical setting and decisioning logs, the offer portfolio and feature namespaces, surrogate model design, the fidelity and stability evaluation protocol, and the three-way instability attribution procedure. Chapter \ref{ch:results} reports empirical results organised by research question, from fidelity assessment through temporal and route-level stability analysis to instability attribution, cross-offer replication, and the feature-level drivers and their business implications. Chapter \ref{Discussion} discusses findings in relation to the broader XAI literature, reflects on limitations arising from the observational data structure, continuous model updating, and restricted model access, and considers implications for practitioners deploying XAI in production decisioning systems. Chapter \ref{Conclusion} concludes and identifies directions for future research.
 
 \chapter{Methodology} \label{Methodology}
 
@@ -256,7 +260,7 @@ Cartrawler & Third-party car rental offer & 42,160 \\
 
 The feature space is restricted to the predictors confirmed active in the live Pega ADM model for each variant, as identified from ADM model snapshots. This restriction is deliberate: Pega ADM automatically selects and deactivates predictors based on their evidential contribution, disabling those whose association with the target falls below an internal threshold. Including inactive predictors would mean training a surrogate on features the black-box model does not use, causing explanations to reflect the surrogate's own behaviour rather than that of the model being explained. The number of active predictors varies across variants, ranging from 22 in the CLUG variant to 33 in BookingDotCom, reflecting each model's independent predictor selection. Predictors span four feature groups: booking context, flight data, contact history, and scoring parameters, with customer attributes appearing additionally in the BookingDotCom variant only. Missingness varies substantially across groups: flight data features are largely complete across all variants (mean 1.1--2.1\%), while contact history features are considerably sparser (mean 41.6--57.4\%), reflecting customers with limited or no prior contact history on a given channel. Scoring parameters are populated at scoring time rather than read from a customer record, so the parquet column underlying the CatBoost categorical encoding has no row-level absence to count (indicated with a dash in the appendix table). A full breakdown of active predictor counts and missingness by feature group and variant is provided in Appendix~\ref{app:missingness}.
 
-The target variable is the Pega ADM propensity score $p \in [0,1]$, representing the model's estimated purchase probability at the moment of scoring. Observed purchase outcomes are not used as the target: the goal of this study is to explain what drives Pega's model output, not to model customer behaviour directly. Using observed outcomes would require assumptions about exposure and selection that cannot be satisfied with observational decisioning data. A further structural characteristic of the dataset is that the underlying model is not static: Pega ADM updates its Naive Bayes model continuously via online learning, meaning different customers in the observation window were scored by different model snapshots. Each scoring event is logged with a \texttt{modelVersion} identifier denoting which snapshot produced the propensity score, alongside descriptive metadata on the number of customer responses and the model's AUC at the time. The \texttt{modelVersion} field is excluded from the surrogate feature matrix but retained as the diagnostic proxy for model version churn in the instability attribution analysis in Section~\ref{sec:evaluation}.
+The target variable is the Pega ADM propensity score $p \in [0,1]$, representing the model's estimated purchase probability at the moment of scoring. Observed purchase outcomes are not used as the target: the goal of this study is to explain what drives Pega's model output, not to model customer behaviour directly. Using observed outcomes would require assumptions about exposure and selection that cannot be satisfied with observational decisioning data. A further structural characteristic of the dataset is that the underlying model is not static: Pega ADM updates its Naive Bayes model continuously via online learning, meaning different customers in the observation window were scored by different model snapshots. Each scoring event is logged with a model-version identifier denoting which snapshot produced the propensity score, alongside descriptive metadata on the number of customer responses and the model's AUC at the time. The model-version field is excluded from the surrogate feature matrix but retained as the diagnostic proxy for model version churn in the instability attribution analysis in Section~\ref{sec:evaluation}.
 
 \section{Surrogate Model} \label{sec:surrogate}
 
@@ -408,6 +412,57 @@ Pair & Route A & Route B & Comparison type \\
 
 Culture subgroups compare the two highest-volume customer culture codes in L5B15, French (FR) and Dutch (NL), providing a customer-segment dimension alongside the route-based splits. The same temporal split is applied to the three replication variants (CLUG, BookingDotCom, and Cartrawler) to test whether the stability and attribution patterns found for L5B15 generalise to offer models with different product contexts and partially distinct feature sets.
 
+\section{Feature-Driver Analysis} \label{sec:rq5_method}
+
+RQ1--RQ4 evaluate the explanation methods themselves: whether SHAP, LIME, and the decision-tree surrogate reproduce the Pega scores faithfully (RQ1), whether their feature rankings are stable across temporal, route, and culture splits (RQ2), how observed shifts decompose across distribution, model-churn, and explainer sources (RQ3), and whether the picture replicates across offer variants (RQ4). Those four questions deliver the licence RQ5 requires: when the three methods agree that a feature carries high importance under the fidelities and stabilities documented in earlier chapters, the ranking can be read as the production model's own signal rather than an explainer artefact. RQ5 therefore proceeds to the content-level question, namely which features the production model has in fact learned to score on. The analysis is purely associative and makes no causal claim about which features cause add-on uptake; it characterises only the importance the production model attributes to them. It introduces no new model and re-uses the per-feature importances produced by SHAP, LIME, and the surrogate decision tree on L5B15.
+
+The procedure has three steps. First, each method's importances are normalised to sum to one and ranked, yielding a cross-method view of which individual predictors carry the most weight. Predictors are then assigned to one of four feature groups, contact history, flight data, booking context, and scoring parameter, using the same grouping as the importance heatmap (Figure~\ref{fig:feature_importance_heatmap}), and importance is summed within group to give each group's share of total attribution per method. The group-level view is the primary summary, motivated directly by RQ2--RQ3: even where individual ranks shift modestly across splits, group-level shares are far less sensitive, because the within-group reshuffling of importance across correlated predictors, which RQ3 partly attributes to explainer sensitivity $\delta_e$, cancels under aggregation. Group shares therefore inherit the stability evidence of RQ2 more cleanly than individual ranks do.
+
+Second, for each predictor in the upper portion of the cross-method ranking, we ask whether a business-logical link to luggage add-on uptake is present. Recency and frequency of prior outbound contact pass this check as a contact-fatigue proxy, trip-context fields such as seat number, destination, or booking month as a trip-type or party-size proxy, and the scoring parameter because it encodes which offer is being scored. A predictor fails the check if no such link is available on its face. This step is judgmental rather than statistical and is reported transparently; its role is not to validate the model but to surface predictors whose attributed importance demands a follow-up before reaching a stakeholder.
+
+Third, a flagged predictor is probed in the raw data to establish whether the surrogate's importance attribution tracks the field's \emph{value} or its mere \emph{populated-ness}. The latter mechanism is plausible in this setting because Pega ADM's predictor selection groups predictors with pairwise correlation above an internal threshold and retains only the strongest of each group; a single surviving predictor can therefore silently encode the missingness pattern of an entire dropped cluster. The probe returns to the full pre-restriction feature matrix (441 columns, 64{,}006 L5B15 records) and constructs three variables. Let $Z = \mathbf{1}[\text{predictor populated}]$ denote the binary populated-indicator for the flagged predictor (chosen to avoid conflict with the feature-vector $\mathbf{X}$ used elsewhere in the methodology), let
+\[
+C \;=\; \frac{1}{K}\sum_{k=1}^{K} \mathbf{1}[\text{customer field } k \text{ populated}] \;\in\; [0, 1]
+\]
+denote a continuous customer-completeness index, where the sum runs over the $K$ logged customer-attribute fields outside the previous-flight family. Let $Y = \mathbf{1}[\text{previous-flight customer profile present}]$ be a binary indicator for the dropped customer family most strongly suspected of being proxied, defined over the previous-flight customer-attribute fields. By construction $C$ and $Y$ are computed from disjoint field sets, so that $r_{pb}(Z, C)$ and $V(Z, Y)$ probe independent slices of the customer namespace. Each of the three measures that follow relates $Z$ to either $Y$ (the risk ratio and Cram\'er's $V$) or $C$ (the point-biserial correlation).
+
+The risk ratio
+\[
+\mathrm{RR} \;=\; \frac{P(Y = 1 \mid Z = 1)}{P(Y = 1 \mid Z = 0)}
+\]
+is the stakeholder-readable lift in the probability of carrying a previous-flight profile between the two subpopulations defined by $Z$. It is the most direct single number but speaks only to the dropped family encoded in $Y$. $\mathrm{RR}$ ranges over $[0, \infty)$ with $\mathrm{RR} = 1$ as the null of no association; values above one indicate that $Y$ is more likely when $Z = 1$ and read directly as a fold-change ($\mathrm{RR} = 2$ is a two-fold lift, $\mathrm{RR} = 6$ a six-fold lift), while values below one would indicate the opposite direction and are not expected under the missingness-proxy hypothesis.
+
+The point-biserial correlation between $Z$ and the customer-completeness index $C$,
+\[
+r_{pb} \;=\; \frac{M_1 - M_0}{s_C} \sqrt{\frac{n_1 \, n_0}{n^{2}}},
+\]
+where $M_1$ and $M_0$ are the means of $C$ in the $Z = 1$ and $Z = 0$ subgroups, $s_C$ is the standard deviation of $C$, and $n_1$, $n_0$, $n$ are the subgroup and total sample sizes, is the Pearson coefficient adapted to one binary and one continuous variable. It asks whether the flagged predictor's populated-ness co-varies with the average populated-ness of the $K$ other customer-attribute fields summarised in $C$, widening the test from the single dropped family $Y$ to the customer-feature space as a whole. $r_{pb}$ shares the $[-1, 1]$ range of the ordinary Pearson correlation, with $r_{pb} = 0$ the null of no linear association; positive values indicate that the $Z = 1$ subgroup carries higher mean completeness across the other customer fields, negative values the reverse. Cohen's conventions for $r$ provide a rough magnitude scale: $|r_{pb}| \approx 0.1$ small, $0.3$ medium, $0.5$ large.
+
+Cram\'er's $V$ on the $2 \times 2$ contingency between $Z$ and $Y$,
+\[
+V \;=\; \sqrt{\frac{\chi^{2}}{n}}, \qquad \chi^{2} \;=\; \sum_{i,j} \frac{(O_{ij} - E_{ij})^{2}}{E_{ij}},
+\]
+with $O_{ij}$ and $E_{ij}$ the observed and expected cell counts under independence (the general Cram\'er denominator $n \cdot \min(r{-}1,\, c{-}1)$ reduces to $n$ for a $2 \times 2$ table), normalises $\chi^{2}$ to $[0, 1]$ so the diagnostic is effectively sample-size invariant. This matters because at $n = 64{,}006$ the raw $\chi^{2}$ statistic and its $p$-value are uninformative: any non-zero association is significant by construction, so effect size, rather than significance, is the diagnostic. $V$ also rests on different distributional assumptions from $\mathrm{RR}$ and $r_{pb}$, so that agreement across all three guards against a finding being an artefact of any single measure. $V$ is bounded in $[0, 1]$ with $V = 0$ the null of statistical independence and $V = 1$ a perfect deterministic relationship; for a $2 \times 2$ table it coincides with the absolute value of the phi coefficient, and the same Cohen-style thresholds apply ($V \approx 0.1$ small, $0.3$ medium, $0.5$ large).
+
+The three measures discriminate between three candidate explanations for a flagged predictor's high attribution, summarised in Table~\ref{tab:rq5_probe_pattern}. A value-driven signal leaves $Z$ unrelated to either $C$ or $Y$, so all three measures sit near their null. A narrow artefact tied to one dropped field couples $Z$ tightly to $Y$ but only weakly to the broader pattern in $C$, so only $\mathrm{RR}$ moves materially. A broad missingness proxy for the dropped customer cluster couples $Z$ to both $Y$ and $C$, elevating all three measures together. The probe is therefore not a single hypothesis test but a small profile of effect sizes, read jointly against the predictor's business-logical story from the second step.
+
+\begin{table}[ht]
+\caption{Expected effect-size pattern under each candidate explanation for a flagged predictor's high attribution. The three measures are read jointly; the joint pattern, not any single value, identifies the underlying mechanism.}
+\label{tab:rq5_probe_pattern}
+\centering
+\begin{tabular}{lccc}
+\toprule
+Candidate explanation & $\mathrm{RR}$ & $r_{pb}$ & $V$ \\
+\midrule
+Value-driven signal & $\approx 1$ & $\approx 0$ & $\approx 0$ \\
+Narrow one-field missingness proxy & $\gg 1$ & $\approx 0$ & small \\
+Broad missingness proxy (dropped cluster) & $\gg 1$ & substantial & substantial \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This probe is offered as a generalisable auditing step for CDH-XAI pipelines, complementing the RQ1 fidelity check: where RQ1 establishes that the explanations are faithful to the surrogate, the probe checks that the surrogate's attribution to a flagged predictor in turn tracks its value rather than the missingness signature of the platform's predictor-selection mechanism. The Pega ADM selection mechanism itself is treated as documented platform behaviour and is not re-derived here.
+
 \section{Assumptions and Limitations} \label{sec:assumptions}
 
 This section documents the assumptions underlying the methodological design and the limitations that constrain the interpretation of results.
@@ -485,7 +540,7 @@ Culture (FR / NL) & 0.977 & 0.667 & 0.310 \\
 
 Figure~\ref{fig:feature_importance_heatmap} shows the normalised feature importance scores across all splits for each explanation method, with features ordered by mean importance across all splits and methods combined. The SHAP and LIME panels present a smooth, consistent colour gradient across splits: the same features dominate the top rows uniformly, with importance decaying gradually down the ranking and the pattern shifting only marginally between splits. The decision tree panel presents a different picture: high-contrast patches appear in different rows across splits, reflecting the tree's tendency to concentrate importance on whichever single feature is most discriminative in a given subgroup rather than distributing it across the full feature set. This pattern is consistent with the instability gap reported in Table~\ref{tab:stability_l5b15}.
 
-Despite these method-level differences in stability, all three methods agree on the broad structure of the feature space. The top-ranked features belong consistently to two feature groups across all splits and methods: contact history features, capturing the recency and frequency of prior outbound communications, and offer-level scoring parameters. Booking context features play a secondary but stable role in the SHAP and LIME rankings, while the decision tree weights them more variably depending on the split. The consistency of this finding across temporal, route-based, and culture-based evaluation conditions indicates that the surrogate's attribution structure is substantively stable at the level of feature groups, even where the decision tree produces unstable rankings at the level of individual features within those groups.
+Two levels of stability emerge from this analysis, and the distinction matters for everything that follows. At the level of individual feature ranks, the methods diverge: SHAP and LIME are nearly invariant across splits, the decision tree is materially less stable, and the three methods only partially agree on the precise order of features within the top of the ranking. At the level of feature \emph{groups}, by contrast, all three methods converge on the same broad attribution structure across every split tested. The top-ranked features belong consistently to two feature groups across all splits and methods, contact history features capturing the recency and frequency of prior outbound communications and offer-level scoring parameters, with booking context features playing a secondary but stable role; the decision tree's within-group reshuffling does not propagate to those group-level shares. This second result is the load-bearing finding for any downstream content analysis: irrespective of which method one reads or which split one looks at, the L5B15 explanations are stable enough at the group level to support a substantive reading of which feature groups the production model scores on, which is the question §\ref{sec:rq5} takes up.
 
 \begin{figure}[ht]
 \centering
@@ -494,7 +549,7 @@ Despite these method-level differences in stability, all three methods agree on 
 \label{fig:feature_importance_heatmap}
 \end{figure}
 
-\section{RQ3: Instability Attribution}
+\section{Instability Attribution (RQ3)} \label{sec:rq3}
 
 The stability values $\rho_{\text{DT}}$, $\rho_{\text{SHAP}}$, and $\rho_{\text{LIME}}$ underlying the decomposition below are reported in Table~\ref{tab:stability_l5b15}. Table~\ref{tab:attribution_l5b15} decomposes the observed instability into its component sources following the classification rule in Table~\ref{tab:attribution_rule}: For L5B15 the temporal split is classified as Both, and all four subgroup splits as Explainer.
 
@@ -506,48 +561,74 @@ The four subgroup splits tell the opposite story. Both external diagnostics fall
 
 Taken together, these results answer RQ3 directly: under controlled conditions where external sources of variation are absent, the dominant source of observed instability is the explanation method itself. The decision tree is consistently the least stable method, driven by refitting variance rather than genuine model or data change. SHAP is the most stable across all splits, with LIME tracking it closely. Under large external shifts the decision tree continues to diverge from SHAP, although the magnitude of that divergence is smaller on the L5B15 temporal split ($\delta_e^{\mathrm{DT}} = 0.141$) than on its subgroup splits (0.171--0.484); SHAP and LIME continue to track each other closely throughout.
 
-\section{RQ4: Cross-Offer Replication} \label{sec:rq4}
+\section{Cross-Offer Replication (RQ4)} \label{sec:rq4}
 
 RQ4 asks whether the fidelity and stability findings observed for the primary L5B15 luggage offer replicate across three further offer variants: CLUG (generic luggage), BookingDotCom (third-party accommodation), and Cartrawler (third-party car rental). The same surrogate-and-attribution pipeline is applied to each variant, with routes pinned to the L5B15 set for direct comparability and culture splits added where data permits. Surrogate fidelity per variant is reported in Table~\ref{tab:surrogate_fidelity_per_variant}; the per-variant instability attribution is reported in Table~\ref{tab:attribution_replication}.
 
 \input{tables/attribution_summary_replication}
 
-\subsection{Surrogate fidelity across variants}
+\subsection{Surrogate Fidelity Across Variants}
 
 Surrogate fidelity is reported in table~\ref{tab:surrogate_fidelity_per_variant}.The CatBoost surrogate achieves high pointwise fidelity on both luggage variants ($R^2 = 0.927$ on L5B15, $0.954$ on CLUG) and on Cartrawler ($R^2 = 0.912$); BookingDotCom is lower at $R^2 = 0.793$ despite its large sample, indicating that some BookingDotCom variance is not captured at the chosen surrogate depth. Rank fidelity (Spearman~$\rho$) is comparably strong on three of the four variants (0.92--0.95) but drops to $0.615$ on Cartrawler, meaning the surrogate reproduces Cartrawler's propensity ordering noticeably less faithfully than the other variants. This caveat is carried forward when reading Cartrawler's downstream attribution numbers: explanation diagnostics inherit the surrogate's approximation error and Cartrawler-specific results should be interpreted with the lower rank-fidelity baseline in mind.
 
-\subsection{Temporal split: full replication}
+\subsection{Temporal Split: Full Replication}
 
 The temporal pattern observed for L5B15 replicates across all three additional variants. Every variant is classified as Both, indicating significant propensity drift ($\delta_d \geq 0.10$) accompanied by near-complete model-version turnover ($J_v < 0.005$) between the early and late observation windows. The magnitude of propensity drift varies substantially across variants, ranging from $\delta_d = 0.246$ on BookingDotCom to $0.721$ on Cartrawler (with L5B15 at $0.356$ and CLUG at $0.390$), yet the classification is identical because the model-version overlap is uniformly near zero. This is the expected consequence of Pega ADM's continuous online learning: any time window long enough to span meaningful population dynamics also spans many micro-updates of the underlying Naive Bayes, so temporal splits structurally combine data drift and snapshot turnover regardless of which offer is being scored. The DT refit-sensitivity gap $\delta_e^{\mathrm{DT}}$ is substantial across the temporal split for every variant (0.141--0.421) and is notably larger for CLUG and Cartrawler than for L5B15 itself, so the decision tree continues to diverge from SHAP under externally-driven shifts and not only under the controlled subgroup conditions of RQ3. By contrast, LIME sampling sensitivity stays near zero in all four variants (largest $\delta_e^{\mathrm{LIME}} = 0.025$ on Cartrawler), meaning LIME continues to track SHAP closely throughout. The pattern that emerges is consistent across split types: SHAP and LIME agree on the top-feature ranking whether the underlying instability is externally-driven or controlled, while the decision tree disagrees with both regardless of which source is driving the shift.
 
-\subsection{Route subgroups: largely replicates with two reclassifications}
+\subsection{Route Subgroups: Largely Replicates with Two Reclassifications}
 
 Route subgroup splits replicate the L5B15 Explainer pattern across most cells, with reclassifications to Dist.\ shift on cells where $\delta_d$ marginally crosses the threshold. Route pair 3 (NCE$\to$ORY vs TLS$\to$ORY) is classified as Explainer for every variant including L5B15, with $\delta_e^{\mathrm{DT}}$ between 0.171 and 0.571 in every cell. Route pair 1 (ORY$\to$NCE vs ORY$\to$OPO) is Explainer for L5B15, CLUG, and Cartrawler; BookingDotCom alone flips to Dist.\ shift because its $\delta_d$ marginally crosses the threshold ($0.116$), even though its $\delta_e^{\mathrm{DT}}$ on this row is the largest in the entire table at $0.711$. Route pair 2 (ORY$\to$OPO vs NCE$\to$ORY) is Explainer for L5B15 and Cartrawler, and Dist.\ shift for CLUG ($\delta_d = 0.116$) and BookingDotCom ($\delta_d = 0.224$).
 
 The qualitative interpretation of the RQ3 finding holds even on the reclassified rows: in every route pair and every variant, $\delta_e^{\mathrm{DT}}$ remains substantial (0.266--0.757), so the decision tree is concurrently contributing to ranking instability whether or not the external diagnostic crosses the threshold. The reclassifications to Dist.\ shift therefore do not reverse the Explainer story; they indicate that in some non-L5B15 route pairs the external trigger is also present alongside the explainer gap. LIME sampling sensitivity is small or slightly negative across most route cells, consistent with the L5B15 pattern, with one notable exception: Cartrawler route pair 2 shows $\delta_e^{\mathrm{LIME}} = 0.367$, indicating that LIME's local perturbation sampling is unusually unstable for that specific subgroup of Cartrawler.
 
-\subsection{Culture split: a divergent finding}
+\subsection{Culture Split: A Divergent Finding}
 
 The culture split is the one place where the L5B15 finding does not replicate. L5B15 is classified as Explainer because its culture-driven propensity shift sits just below the threshold ($\delta_d = 0.081$). All three replication variants flip to Dist.\ shift: CLUG shows a modest above-threshold shift ($\delta_d = 0.114$), and BookingDotCom and Cartrawler show very large shifts ($\delta_d = 0.718$ and $0.689$ respectively). The substantive reading is that customer culture (French versus Dutch) maps onto materially different propensity distributions for the cross-sell and third-party offers but not for the luggage upsell. That is, the Pega model has learned a stronger culture-conditional response pattern in BookingDotCom and Cartrawler than in the luggage offers, plausibly because accommodation and car-rental preferences vary more across European customer segments than basic luggage add-on uptake does.
 
 The two third-party variants also produce instructive explainer-gap patterns under culture. BookingDotCom's $\delta_e^{\mathrm{DT}}$ collapses to $0.054$ on the culture split, the lowest in the entire table, meaning that despite a very large external shift the decision tree's ranking is comparatively stable across cultures for that variant. Cartrawler shows the opposite pattern, with $\delta_e^{\mathrm{LIME}} = 0.352$ alongside its large $\delta_d$, indicating that LIME's local sampling becomes unstable in the same comparison that also exhibits substantial external drift. These two cells illustrate that even when external sources fire, the relative contribution of refit and sampling sensitivity can vary substantially across product contexts.
 
-\subsection{Summary of replication evidence}
+\subsection{Summary of Replication Evidence}
 
 The replication evidence supports the RQ3 conclusion with one important caveat. The temporal pattern of externally-driven instability with moderate DT contribution replicates fully across all four variants. The route pattern of explainer-dominant instability under controlled same-window conditions replicates qualitatively across all variants, with three rows reclassified to Dist.\ shift on borderline $\delta_d$ values; the underlying DT-versus-SHAP gap remains the larger numerical contributor in those cells. The culture pattern does not replicate: L5B15 culture instability is classifiable as Explainer-driven only because its $\delta_d$ sits just below threshold, whereas the three other variants exhibit genuine culture-induced propensity shifts large enough to dominate the attribution. This divergence is best read as a property of the underlying Pega model rather than of the evaluation pipeline: customer culture has a stronger effect on third-party and generic-luggage propensity than on the L5B15 weight-specific luggage offer. The methodological findings therefore generalise, while the substantive role of any one feature dimension in driving observed instability is product-context-specific.
 
 
+\section{Feature Drivers and Business Implications (RQ5)} \label{sec:rq5}
+
+§\ref{sec:rq2} established that the three explanation methods converge on the same L5B15 attribution structure at the level of feature groups across every split tested, even where their individual feature ranks diverge, and §\ref{sec:rq3} attributed the residual individual-rank drift to decision-tree refit variance ($\delta_e^{\mathrm{DT}}$) rather than to underlying model or data change. Together those two results licence reading group-level attribution shares as a substantive description of what the production model has learned to score on, regardless of which of the three methods supplies them. This section takes that licence and asks the content question: which features drive the L5B15 propensity score, and what the resulting attribution structure means for the marketing and governance stakeholders who consume those scores.
+
+\subsection{What the Model Scores On}
+
+Table~\ref{tab:rq5_feature_importance} reports the per-feature importance share for each method, ordered by mean rank across the three. Beyond the offer-identity scoring parameter, which carries the single largest share in every method as expected for a feature that encodes which product is being scored, the highest-ranked predictors are overwhelmingly contact-history features: the number of days since the last outbound email and the historical count of prior outbound contacts. These are recency and frequency signals, the two quantities that together define contact fatigue. The decision tree concentrates an especially large share on a single such feature, the historical outbound-email count, consistent with its tendency to split early on whichever recency or frequency variable is most discriminative.
+
+\input{tables/rq5_feature_importance}
+
+\subsection{Recency and Fatigue, Not Customer Identity}
+
+Aggregated to the feature-group level (Table~\ref{tab:rq5_group_importance}), the pattern is unambiguous. Contact-history features account for roughly half of total importance under SHAP and for the large majority under the decision tree; flight-level features form the second pillar. Booking context and the scoring parameter make up the remainder. Customer-level attributes, demographics and loyalty profile, contribute nothing, because no customer attribute survives Pega's active-predictor selection for L5B15 in the first place (Section~\ref{sec:data}).
+
+\input{tables/rq5_group_importance}
+
+The commercial reading is direct. For this offer, the propensity model is, in effect, scoring how recently and how often the customer has been contacted, together with the context of the booked trip, rather than who the customer is. Loyalty tier, demographics, and historical value, the attributes marketing teams most often assume drive personalisation, play no role in the L5B15 score because they were never retained as predictors. The actionable lever this surfaces is contact strategy: because recency and contact-frequency dominate the score, the model's behaviour is highly sensitive to the cadence of the outbound programme itself, and a frequency-capping or fatigue-management policy would move propensities more reliably than richer customer segmentation. This also tempers a common governance expectation: an audit asking ``which customer characteristics drive this offer?'' would find that, for L5B15, the honest answer is essentially none.
+
+\subsection{A Top Predictor Encoding Missingness, Not Value}
+
+One flight-group predictor warrants separate scrutiny. The staff-standby flag, which marks bookings issued on a staff standby ticket, ranks among the most important features under both SHAP and LIME (Table~\ref{tab:rq5_feature_importance}), which is commercially counter-intuitive: staff standby travel should have little to do with a passenger's propensity to buy a luggage add-on. Inspection of the raw field explains the anomaly. The flag is almost never true; what varies across records is whether the field is populated at all. Table~\ref{tab:rq5_staffstandby_proxy} shows that records for which the field is populated are far more likely to carry a previous-flight customer profile than records for which it is blank ($20.3\%$ versus $3.0\%$, a $6.8\times$ difference; point-biserial $r = 0.25$ and Cram\'er's $V = 0.25$ with the presence of a previous-flight profile, both $p \approx 0$).
+
+\input{tables/rq5_staffstandby_proxy}
+
+The predictor is therefore acting as a proxy for record completeness rather than for staff-standby status: its populated-ness co-varies with whether the customer is a recognised returning traveller with historical profile data attached. This is the visible downstream symptom of Pega's predictor selection. Because the platform deactivates sparse customer-level predictors and retains only the strongest of any group of correlated predictors, the missingness pattern those predictors would have carried does not disappear; it re-emerges, encoded in the presence pattern of a surviving feature that happens to correlate with data availability. The governance implication is concrete and transferable: in a continuously self-selecting feature space, a feature's measured importance can reflect which records have data rather than what the data says, and a predictor that an audit would flag as nonsensical may in fact be the model's handle on an unmodelled missingness structure. Detecting this requires checking high-importance predictors against their own populated-ness, a cheap diagnostic that this case study shows is worth running before attribution results are presented to stakeholders.
+
 \chapter{Discussion} \label{Discussion}
 
-\section{Summary of key findings}
+\section{Summary of Key Findings}
 
-Across the four research questions the empirical picture is internally consistent. A CatBoost surrogate reproduces Pega ADM's logged propensity scores with high rank fidelity on three of the four offer variants studied, providing a sufficient base for downstream attribution. Built on that surrogate, SHAP and LIME produce highly stable feature rankings across temporal, route, and customer-culture splits, while a shallow decision tree surrogate fitted directly on the propensities produces rankings that vary substantially between subgroups. The instability-attribution diagnostic shows that under controlled same-window conditions, where neither the propensity distribution nor the active model snapshots shift meaningfully, the dominant source of observed ranking instability is the explanation method itself. The pattern replicates across three further offer variants on temporal and route splits; the one place L5B15 diverges from the replication set is the customer-culture split, where the third-party offers exhibit substantial culture-conditional propensity shifts that the luggage variant does not.
+Across the five research questions the empirical picture is internally consistent. A CatBoost surrogate reproduces Pega ADM's logged propensity scores with high rank fidelity on three of the four offer variants studied, providing a sufficient base for downstream attribution. Built on that surrogate, SHAP and LIME produce highly stable feature rankings across temporal, route, and customer-culture splits, while a shallow decision tree surrogate fitted directly on the propensities produces rankings that vary substantially between subgroups. The instability-attribution diagnostic shows that under controlled same-window conditions, where neither the propensity distribution nor the active model snapshots shift meaningfully, the dominant source of observed ranking instability is the explanation method itself. The pattern replicates across three further offer variants on temporal and route splits; the one place L5B15 diverges from the replication set is the customer-culture split, where the third-party offers exhibit substantial culture-conditional propensity shifts that the luggage variant does not.
 
 Across explanation methods, SHAP is the most reliable in this setting. LIME tracks SHAP closely with one exception linked to its local perturbation sampling. The decision tree surrogate, despite being interpretable in the strictest end-to-end sense, is the least stable across populations even when the underlying model has not changed.
 
-\section{Interpretation of findings by research question}
+\section{Interpretation of Findings by Research Question}
 
-\subsection{RQ1: Surrogate fidelity}
+\subsection{Surrogate Fidelity (RQ1)}
 
 The fidelity result is, in one reading, unsurprising: a flexible gradient-boosted ensemble trained directly on logged scores ought to reproduce those scores reasonably well. What matters here is not the level itself but its consequence for the rest of the pipeline. Because SHAP and LIME operate on the surrogate $g$, every attribution they emit is downstream of $g$'s approximation of $f$. The decision tree surrogate, fitted directly on $p$, faces a single layer of approximation rather than two. Strong rank fidelity on three of four variants is therefore the condition that licenses attribution claims for SHAP and LIME in those settings, not a free-standing result.
 
@@ -555,7 +636,7 @@ The Cartrawler exception illustrates the practical importance of reporting rank-
 
 The candidate-model comparison underlying the architecture choice also has interpretive value. A Gaussian Naive Bayes baseline, architecture-matched to Pega's internal model, lags behind every tree-based candidate on the fidelity suite. This is consistent with the broader observation in the XAI literature that an explanation pipeline constrained to the black-box model's own functional class is not necessarily the best surrogate of its input-output behaviour, particularly when feature interactions and high-cardinality categoricals are involved \parencite{molnar_interpretable_2025}. A flexible surrogate produces more faithful approximations to the model output, even when the underlying model is itself a simpler classifier. In the present setting, two factors plausibly drive this gap. First, Pega ADM's online learning produces a continuously evolving Naive Bayes that, viewed as a single input-output function over the observation window, behaves like a mixture rather than a single classifier; a flexible surrogate captures the mixture more faithfully than any single-snapshot Naive Bayes can. Second, Pega's bin-based handling of categoricals collapses information that CatBoost's native ordered target encoding preserves.
 
-\subsection{RQ2: Explanation stability}
+\subsection{Explanation Stability (RQ2)}
 
 The stability results sharpen one of the central concerns of the XAI evaluation literature: explanations of the same model can diverge across populations even when the populations are drawn from the same data-generating process \parencite{ribeiro_why_2016, vilone_explainable_2020}. The contribution here is to show how that divergence behaves across three explanation families under deliberately controlled conditions.
 
@@ -567,7 +648,7 @@ The decision tree's instability is the central finding of RQ2. A shallow tree co
 
 For a production decisioning system the operational implication is direct. A practitioner who inspects per-subgroup decision-tree explanations to understand why a model behaves differently on different customer segments may attribute that difference to the model itself, when in fact the underlying scoring function has barely moved and the difference lies in how the explanation method aggregates importance over the subgroup. Stability of an explanation is therefore not only a property of the model being explained; it is a property of the explanation method, the surrogate where one is used, and the interaction between the two and the evaluation data.
 
-\subsection{RQ3: Instability attribution}
+\subsection{Instability Attribution (RQ3)}
 
 The instability-attribution diagnostic operationalises a question implicit in much of the XAI evaluation literature but rarely answered directly: when explanations of a deployed model disagree across populations, where does the disagreement come from \parencite{vilone_explainable_2020, molnar_interpretable_2025}? The three-source decomposition, distribution shift $\delta_d$, model churn $\delta_m$, and explainer sensitivity $\delta_e$, separates causes that are commonly conflated and provides a structured basis for assigning observed instability to its dominant source.
 
@@ -577,7 +658,7 @@ The same-window subgroup splits, route and culture, are the test cases where the
 
 A reader familiar with the XAI literature will note that the diagnostic does not claim causal identification. The three sources are proxied by effect-size statistics, not isolated by intervention, and $\delta_d$ and $\delta_m$ are themselves correlated, since the same incoming response data that shifts the feature distribution also drives the online updates. The protocol is best read as an indicative decomposition that surfaces distinctions normally collapsed inside a single instability number, not as a causal account of why a particular ranking moved.
 
-\subsection{RQ4: Cross-offer replication}
+\subsection{Cross-Offer Replication (RQ4)}
 
 The replication evidence has both methodological and substantive readings. Methodologically, the protocol generalises: applying the same surrogate fitting, fidelity assessment, and attribution diagnostic to three further offer variants reproduces the qualitative pattern from L5B15 in nearly every cell. Temporal splits classify as Both across all four variants, route splits classify predominantly as Explainer with a small number of reclassifications to Dist.\ shift on borderline values of $\delta_d$, and the decision tree's refit gap remains the largest numerical contributor in route cells even when the formal classification flips. A practitioner applying this diagnostic to a new offer in the same CDH environment should expect to recover comparable patterns.
 
@@ -585,7 +666,13 @@ The substantive reading is more nuanced and is, in some ways, the more interesti
 
 The distinction between the methodological protocol generalising and the substantive feature-level effect being product-context-specific is one of the contributions of including offers from different commercial categories in the replication set rather than only weight-variant luggage offers. A cross-domain replication would also have validated the protocol, but would have offered less information about the diagnostic's behaviour on offers that share most of the feature space but differ substantively in customer-side response patterns.
 
-\section{Academic implications}
+\subsection{Feature Drivers (RQ5)}
+
+The feature-level findings are, for a practitioner audience, the most directly consequential of the thesis. Two results stand out. The first is that the L5B15 propensity score is driven by contact recency and frequency and by the context of the booked trip, and not at all by customer identity. This is not a quirk of attribution but a structural consequence of how the model was built: Pega's predictor selection retained no customer-level attribute for this offer, so demographics and loyalty profile cannot drive the score regardless of which explanation method is used. The reading that the model scores contact fatigue more than it scores the customer is therefore robust to the explainer-stability concerns raised in RQ2 and RQ3, because it holds at the feature-group level where all three methods agree.
+
+The second result is that a feature's importance can be an artefact of the data-collection process rather than a behavioural signal. The staff-standby predictor is influential not because staff-standby status predicts luggage purchase but because the field's populated-ness proxies for record completeness, and completeness in turn correlates with being a recognised returning customer. This is a specific, measured instance of a general hazard in self-selecting feature spaces: when a platform deactivates sparse predictors and groups correlated ones, the missingness structure those predictors carried is not removed but displaced onto whichever surviving feature correlates with data availability. The finding does not undermine the explanation methods, all three of which faithfully report that the model relies on the feature; it shows that faithful attribution and behavioural meaning are distinct, and that the gap between them is exactly where a data artefact can hide.
+
+\section{Academic Implications}
 
 The thesis contributes at two related levels to the XAI evaluation literature.
 
@@ -595,15 +682,19 @@ The second contribution is empirical: a systematic comparison of SHAP, LIME, and
 
 A further methodological observation concerns the choice of surrogate architecture. The candidate-model comparison shows that an architecture-matched Naive Bayes surrogate is not the best approximator of an online-updating Naive Bayes black-box model. This points to a small but practically relevant gap in the existing surrogate-modelling literature, which tends to recommend functional-class matching as a default \parencite{molnar_interpretable_2025}.
 
-\section{Practical implications}
+\section{Practical Implications}
 
-For organisations deploying explainability tooling on Pega ADM or similar continuously-updating CDH systems, three implications follow.
+For organisations deploying explainability tooling on Pega ADM or similar continuously-updating CDH systems, five implications follow.
 
 First, the choice of explanation method matters operationally, not only academically. Decision-tree surrogates are often preferred in governance contexts because they are interpretable end-to-end. The results in this thesis show that the same surrogate can produce substantially different feature rankings on subgroups of the same population even when the underlying model has not changed. Practitioners who rely on per-subgroup decision-tree explanations for compliance or audit purposes should be aware that the resulting story can be inconsistent across populations for reasons that have nothing to do with model behaviour. SHAP and LIME, despite their own theoretical limitations, are consistently more stable in the present setting.
 
 Second, the instability-attribution diagnostic is directly deployable for monitoring. The two effect-size statistics underlying the diagnostic, the Kolmogorov--Smirnov statistic on logged propensity and the Jaccard overlap on the active model-version set, are cheap to compute from existing decisioning logs and require no access to ADM internals. A monitoring pipeline that tracks these alongside per-window explanation rankings would flag instability events and indicate, before any deep diagnostic work, whether the likely source is data drift, model turnover, the explanation method itself, or some combination.
 
 Third, the surrogate-based explanation pipeline as a whole is a workable approach for practitioners without access to ADM internals. The Pega CDH platform does not currently expose a live scoring API for offline analysis, and the model's own internal predictor importances are accessible only through the Health Check predictor overview rather than through a queryable interface. The pipeline operationalised in this thesis, surrogate fitted on logged $(\mathbf{X}, p)$ tuples, fidelity assessed against the same logs, attributions explained on the surrogate, demonstrates that meaningful explanation work is possible inside that constraint. It does not replace direct ADM access where that is available; it provides a defensible second-best for the common case where it is not.
+
+Fourth, the feature-driver findings reframe where personalisation effort is best spent for this offer. Because the propensity score is dominated by contact recency and frequency rather than by customer attributes (Section~\ref{sec:rq5}), the score responds more to the cadence of the outbound programme than to customer segmentation. A practical consequence is that a contact-frequency or fatigue-management policy, governing how recently and how often a customer has been emailed, is likely to shift propensities more reliably than investment in richer customer features, at least until customer-level predictors accumulate enough evidence to be activated. Marketing stakeholders expecting the model to key on loyalty tier or demographics should be told plainly that, for this offer, it does not.
+
+Fifth, high-importance predictors should be checked against their own populated-ness before attribution results are presented for audit. The staff-standby case shows that in a self-selecting feature space a predictor can rank highly because its presence proxies for record completeness rather than because it carries behavioural signal. This is cheap to detect, comparing the missingness pattern of a top predictor against the availability of the deactivated features, and doing so guards against the governance failure mode in which a model is certified on an explanation that is faithful to the model but misleading about the world. More broadly, it argues for treating predictor deactivation and correlation grouping as first-class metadata in any CDH explanation review, since they determine which signals a feature is silently standing in for.
 
 \section{Limitations}
 
@@ -619,7 +710,7 @@ A third class of limitations concerns observational structure. All evaluation da
 
 Two narrower limitations are worth flagging. The Jaccard overlap on model-version identifiers proxies snapshot turnover rather than parameter shift directly: Pega ADM issues a new identifier on every micro-update, so two functionally identical snapshots can carry different IDs. This is mitigated by the structural property that same-window splits draw from the same active snapshot pool, but it remains an imperfect proxy. Separately, LIME importance rankings are aggregated across instances by averaging per-instance linear coefficients, which assumes coefficient comparability across the feature space; the conclusions on LIME stability should be read with that assumption in mind.
 
-\section{Future research}
+\section{Future Research}
 
 Several extensions follow naturally from the results and the limitations.
 
@@ -635,27 +726,31 @@ Finally, a comparison between Pega ADM's online Naive Bayes and an architectural
 
 \chapter{Conclusion} \label{Conclusion}
 
-This thesis evaluated post-hoc explanation methods applied to a continuously-updating offer-level propensity model in a production airline Customer Decision Hub, and proposed a structured diagnostic for attributing observed explanation instability to its dominant source. The four research questions are answered directly below.
+This thesis evaluated post-hoc explanation methods applied to a continuously-updating offer-level propensity model in a production airline Customer Decision Hub, and proposed a structured diagnostic for attributing observed explanation instability to its dominant source. The five research questions are answered directly below.
 
-\section{RQ1: Surrogate fidelity}
+\section{Surrogate Fidelity (RQ1)}
 
 A CatBoost surrogate trained on logged Pega ADM propensity scores reproduces those scores with high fidelity on three of the four offer variants studied. Rank-based agreement, the operationally relevant property given that Pega CDH consumes propensities through prioritisation rather than as calibrated probabilities, is strong on the primary L5B15 luggage variant and on the CLUG and BookingDotCom replications, and is weaker on Cartrawler. The surrogate provides a sufficiently faithful approximation of the black-box model to serve as a valid explanation target on the three variants where rank fidelity is high; Cartrawler-specific results are reported under the explicit fidelity caveat.
 
-\section{RQ2: Explanation stability}
+\section{Explanation Stability (RQ2)}
 
 Across temporal, route, and customer-culture splits on L5B15, SHAP produces the most stable feature rankings, with full-ranking Spearman correlations close to unity in every comparison. LIME tracks SHAP closely, with one exception on the route pair with neither shared origin nor destination, where local perturbation sampling introduces additional variance. A shallow decision-tree surrogate fitted directly on the propensity scores is substantially less stable than both, particularly on subgroup splits, and the bootstrap validation confirms that the between-split disagreement exceeds within-split fitting noise on three of the four subgroup comparisons.
 
-\section{RQ3: Instability attribution}
+\section{Instability Attribution (RQ3)}
 
 When explanation rankings shift between sub-populations, the dominant source depends on the type of split. On temporal splits both the propensity distribution and the active model-snapshot set shift substantially, and the diagnostic classifies these as jointly driven by data drift and model churn. On same-window subgroup splits, where both external sources are constrained to be small by design, the dominant remaining source is the explanation method itself. The implication is that under the operationally realistic condition in which data and model are approximately stable, the choice of explanation method materially shapes which features appear to drive scoring.
 
-\section{RQ4: Cross-offer replication}
+\section{Cross-Offer Replication (RQ4)}
 
 The patterns documented for L5B15 replicate across three further offer variants on temporal and route splits, with classifications changing only on borderline values of the distribution-shift diagnostic and with the decision tree's refit gap remaining the largest numerical contributor throughout. The culture split is the one place where L5B15 does not replicate: the three replication variants exhibit substantial culture-conditional propensity shifts that the luggage upsell does not. The methodological protocol therefore generalises across offer variants; the substantive role of any particular feature dimension in driving observed instability is product-context-specific.
 
-\section{Final synthesis}
+\section{Feature Drivers (RQ5)}
 
-The principal contribution of this thesis is a structured evaluation protocol for post-hoc explanation methods applied to continuously-updating propensity models under the conditions that characterise production CDH environments: observational decisioning logs, restricted black-box access, categorical-heavy feature spaces, and continuous online learning. The protocol combines surrogate-based fidelity assessment with a three-way instability-attribution diagnostic that decomposes observed ranking shifts into distribution shift, model-version churn, and explainer sensitivity. Applied to a portfolio of four offer variants from a single CDH installation, the protocol reveals a consistent pattern: SHAP and LIME deliver stable, fidelity-grounded attributions; the decision-tree surrogate is the least stable explanation method across populations even when the underlying model has not changed; and explainer sensitivity is the dominant source of instability under controlled same-window conditions. For practitioners operating in CDH environments without direct model access, the protocol provides a defensible second-best path to model-explanation evaluation; for the wider XAI evaluation literature, it offers empirical evidence on how feature-attribution methods behave when the standard i.i.d., full-access, static-model assumptions are dropped.
+For the L5B15 offer, the propensity score is driven by contact recency and frequency and by the context of the booked trip, while customer-level attributes play no role because none are retained as active predictors. All three explanation methods agree on this at the feature-group level, so the finding is robust to the explainer-stability concerns of RQ2 and RQ3. The model is, in this sense, scoring contact fatigue more than it is scoring the customer, which points marketing effort toward contact-cadence management rather than richer segmentation. A separate and cautionary finding is that one of the model's most influential predictors, the staff-standby flag, is important because its populated-ness proxies for record completeness rather than because it carries behavioural signal, a reminder that in a self-selecting feature space faithful attribution and behavioural meaning can diverge, and that high-importance predictors should be checked against their own missingness before being trusted in governance.
+
+\section{Final Synthesis}
+
+The principal contribution of this thesis is a structured evaluation protocol for post-hoc explanation methods applied to continuously-updating propensity models under the conditions that characterise production CDH environments: observational decisioning logs, restricted black-box access, categorical-heavy feature spaces, and continuous online learning. The protocol combines surrogate-based fidelity assessment with a three-way instability-attribution diagnostic that decomposes observed ranking shifts into distribution shift, model-version churn, and explainer sensitivity. Applied to a portfolio of four offer variants from a single CDH installation, the protocol reveals a consistent pattern: SHAP and LIME deliver stable, fidelity-grounded attributions; the decision-tree surrogate is the least stable explanation method across populations even when the underlying model has not changed; and explainer sensitivity is the dominant source of instability under controlled same-window conditions. For practitioners operating in CDH environments without direct model access, the protocol provides a defensible second-best path to model-explanation evaluation; for the wider XAI evaluation literature, it offers empirical evidence on how feature-attribution methods behave when the standard i.i.d., full-access, static-model assumptions are dropped. Alongside the protocol, the case study contributes two substantive findings of direct commercial relevance: that the offer-propensity model scores contact recency and fatigue rather than customer identity, redirecting where personalisation effort is best spent; and that a self-selecting feature space can elevate a predictor whose importance encodes data missingness rather than behaviour, a governance hazard that is cheap to detect once it is known to look for.
 
 \chapter{References}
 \linespread{1.25} % override default line spacing used for references
@@ -667,7 +762,7 @@ The principal contribution of this thesis is a structured evaluation protocol fo
 
 \newpage
 \newpage
-\chapter{Appendix: Additional detail}
+\chapter{Appendix: Additional Detail}
 \appendix
 \renewcommand{\thetable}{A.\arabic{table}}
 \setcounter{table}{0}
@@ -743,7 +838,7 @@ Table~\ref{tab:top10_l5b15_per_split} lists the ten highest-ranked features per 
 
 \newpage
 
-\chapter{Appendix on Generative Artificial Intelligence use}
+\chapter{Appendix on Generative Artificial Intelligence Use}
 
 Generative AI was used throughout this thesis in the following ways.
 

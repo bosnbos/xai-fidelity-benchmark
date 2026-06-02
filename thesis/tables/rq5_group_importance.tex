@@ -1,0 +1,17 @@
+\begin{table}[ht]
+\caption{L5B15 feature-importance aggregated by feature group, as a percentage of each method's total importance. Contact-history (recency and frequency of prior outbound contact) and flight-level features dominate across all three methods; customer-level attributes contribute nothing because none survive Pega's active-predictor selection for L5B15.}
+\label{tab:rq5_group_importance}
+\centering
+\begin{tabular}{llrrr}
+\toprule
+Feature group & \# feat & SHAP\% & LIME\% & DT\% \\
+\midrule
+Contact history & 11 & 49.8 & 34.4 & 70.8 \\
+Flight data & 7 & 19.7 & 30.7 & 3.6 \\
+Booking context & 4 & 14.8 & 15.8 & 4.1 \\
+Scoring parameter & 1 & 15.7 & 19.0 & 21.5 \\
+\midrule
+Customer attributes & 0 & 0.0 & 0.0 & 0.0 \\
+\bottomrule
+\end{tabular}
+\end{table}

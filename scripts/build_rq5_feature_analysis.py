@@ -111,8 +111,13 @@ def load_importances() -> pd.DataFrame:
     })
     for m in ("shap", "lime", "dt"):
         df[f"rank_{m}"] = df[m].rank(ascending=False, method="min").astype(int)
-    df["mean_rank"] = df[["rank_shap", "rank_lime", "rank_dt"]].mean(axis=1)
-    return df.sort_values("mean_rank").reset_index(drop=True)
+    # Order by the SHAP/LIME consensus only. RQ2/RQ3 established SHAP and LIME as
+    # the reliable methods and the decision tree as the unstable one, so the two
+    # reliable methods govern the ranking; the DT share is retained as a
+    # corroborating column but deliberately excluded from the ordering rather
+    # than averaged in with equal weight.
+    df["sl_rank"] = df[["rank_shap", "rank_lime"]].mean(axis=1)
+    return df.sort_values(["sl_rank", "rank_shap"]).reset_index(drop=True)
 
 
 # ---------------------------------------------------------------------------
@@ -124,26 +129,29 @@ def build_feature_table(df: pd.DataFrame) -> None:
     lines = [
         r"\begin{table}[ht]",
         r"\caption{L5B15 feature-importance shares across the three explanation "
-        r"methods, ordered by mean rank. Each method's importances are normalised "
-        r"to sum to 100\%; ranks are within method. Group tags: CH~=~contact "
+        r"methods, ordered by the SHAP/LIME consensus rank (the mean of the SHAP "
+        r"and LIME within-method ranks). The ordering uses only the two methods "
+        r"that RQ2 and RQ3 found reliable; the decision-tree share is reported as "
+        r"a corroborating column but does not drive the ordering. Each method's "
+        r"importances are normalised to sum to 100\%. Group tags: CH~=~contact "
         r"history, FD~=~flight data, BC~=~booking context, SP~=~scoring parameter.}",
         r"\label{tab:rq5_feature_importance}",
         r"\centering",
         r"\small",
         r"\begin{tabular}{llrrrr}",
         r"\toprule",
-        r"Feature & Grp & SHAP\% & LIME\% & DT\% & Mean rank \\",
+        r"Feature & Grp & SHAP\% & LIME\% & DT\% & SL rank \\",
         r"\midrule",
     ]
     for _, r in df.iterrows():
         lines.append(
             f"{_tex_escape(r['label'])} & {r['group']} & "
             f"{100*r['shap']:.1f} & {100*r['lime']:.1f} & {100*r['dt']:.1f} & "
-            f"{r['mean_rank']:.1f} \\\\")
+            f"{r['sl_rank']:.1f} \\\\")
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}", ""]
     (TABLES / "rq5_feature_importance.tex").write_text("\n".join(lines))
-    print("\n=== 1. Per-feature importance (top 12 by mean rank) ===")
-    print(df.head(12)[["label", "group", "shap", "lime", "dt", "mean_rank"]]
+    print("\n=== 1. Per-feature importance (top 12 by SHAP/LIME consensus rank) ===")
+    print(df.head(12)[["label", "group", "shap", "lime", "dt", "sl_rank"]]
           .to_string(index=False, float_format=lambda x: f"{x:.3f}"))
 
 

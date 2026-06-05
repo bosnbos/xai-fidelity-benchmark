@@ -37,7 +37,7 @@ Drop new Pega decision JSON exports into `data/decisions/` and re-run `02_data_i
 
 ## Thesis tables
 
-All thesis-ready LaTeX tables are produced by **`scripts/build_thesis_tables.py`**, which reads the JSON / CSV artefacts saved by the notebooks (in `data/artifacts/`) and writes the `.tex` files into the repo-root **`tables/`** folder. Everything ends up in one flat directory so you can drag-and-drop the whole folder into an Overleaf project's `tables/`.
+All thesis-ready LaTeX tables are produced by **`scripts/build_thesis_tables.py`**, which reads the JSON / CSV artefacts saved by the notebooks (in `data/artifacts/`) and writes the `.tex` files directly into **`thesis/tables/`** (the same folder `build_rq5_feature_analysis.py` writes to). The thesis references these files via `\input{tables/<name>}`, so a rebuild updates the thesis tables in place — no separate copy step.
 
 The notebooks compute and persist numbers (JSON / CSV); the script handles all formatting (captions, column headers, rounding). Separating the two means thesis-table tweaks never require re-running expensive notebook computations.
 
@@ -55,7 +55,7 @@ You do **not** need to re-run notebooks just to update tables — the script rea
 
 **Main-text tables**
 
-| Target | Reads (under `data/artifacts/`) | Writes (under `tables/`) |
+| Target | Reads (under `data/artifacts/`) | Writes (under `thesis/tables/`) |
 |---|---|---|
 | `surrogate_fidelity` | `surrogate_fidelity_per_variant.csv` | `surrogate_fidelity_per_variant.tex` |
 | `rq1_explainer_fidelity` | `rq1_explainer_fidelity.csv` | `rq1_explainer_fidelity.tex` |
@@ -65,7 +65,7 @@ You do **not** need to re-run notebooks just to update tables — the script rea
 
 **Appendix tables** (in narrative order)
 
-| Target | Reads (under `data/artifacts/`) | Writes (under `tables/`) |
+| Target | Reads (under `data/artifacts/`) | Writes (under `thesis/tables/`) |
 |---|---|---|
 | `missingness` | `missingness.csv` (produced by `scripts/build_missingness_table.py`) | `missingness.tex` |
 | `depth_sensitivity` | `l5b15/depth_sensitivity_table.csv` | `depth_sensitivity_table.tex` |
@@ -79,7 +79,7 @@ You do **not** need to re-run notebooks just to update tables — the script rea
 
 Default rounding is 3 decimal places; RMSE keeps 4 dp because some variants are near $10^{-4}$.
 
-**Overleaf workflow:** upload (or drag-and-drop) the contents of `tables/` into a folder of the same name in the Overleaf project, then reference any table with `\input{tables/<name>}`.
+**Overleaf workflow:** the tables live under `thesis/tables/` and are referenced with `\input{tables/<name>}`. If you sync the `thesis/` folder to Overleaf, the rebuilt tables travel with it — no separate upload step.
 
 `rq1_explainer_fidelity.csv` itself is built by `scripts/build_rq1_table.py` (it joins per-variant `fidelity.json` and `dt_model.pkl`); run that once when surrogate/DT models change, then `build_thesis_tables.py` for the LaTeX.
 

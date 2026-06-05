@@ -2,10 +2,11 @@
 """Generate all thesis-ready LaTeX tables from saved JSON/CSV artefacts.
 
 Each table is produced by one function in this module, reading from
-``data/artifacts/`` and writing the ``.tex`` into the repo-root ``tables/``
-folder. Notebooks produce the JSON/CSV; this script handles the formatting.
-All outputs live together in ``tables/`` so they can be dragged into an
-Overleaf project's ``tables/`` folder in one go.
+``data/artifacts/`` and writing the ``.tex`` directly into ``thesis/tables/``
+(the same folder ``build_rq5_feature_analysis.py`` writes to). Notebooks
+produce the JSON/CSV; this script handles the formatting. Writing straight
+into ``thesis/tables/`` means the thesis always references the freshly built
+tables — no separate copy step.
 
 This separation keeps the notebooks focused on scientific computation and
 makes thesis-table tweaks fast: edit a caption or a rounding spec here and
@@ -36,7 +37,7 @@ import pandas as pd
 REPO   = Path(__file__).resolve().parent.parent
 ART    = REPO / "data" / "artifacts"
 L5     = ART / "l5b15"
-TABLES = REPO / "tables"   # all .tex outputs land here, ready to copy to Overleaf
+TABLES = REPO / "thesis" / "tables"   # .tex outputs land directly in the thesis
 
 # Default rounding
 _NUM = "{:.3f}"
@@ -624,7 +625,7 @@ def build_bootstrap_dt_summary() -> None:
             "Classification: $>0.10$ genuine signal; $0.03$ to $0.10$ small "
             "effect; $\\leq 0.03$ indistinguishable from refit noise. Raw "
             "pairwise values are in "
-            "\\path{data/artifacts/l5b15/bootstrap_dt_routes.json}."
+            "\\protect\\path{data/artifacts/l5b15/bootstrap_dt_routes.json}."
         )
         .to_latex(hrules=True, label="tab:bootstrap_dt")
     )

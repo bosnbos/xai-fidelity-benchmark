@@ -1523,7 +1523,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess" },
+    { name = "ptyprocess", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
@@ -2446,23 +2446,23 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "catboost", specifier = ">=1.2.0" },
-    { name = "ipykernel", specifier = ">=7.0.0" },
-    { name = "ipython", specifier = ">=9.0.0" },
-    { name = "jupyterlab", specifier = ">=4.0.0" },
-    { name = "lightgbm", specifier = ">=4.0.0" },
-    { name = "lime", specifier = ">=0.2.0" },
-    { name = "matplotlib", specifier = ">=3.10.0" },
-    { name = "numpy", specifier = ">=2.0.0" },
-    { name = "pandas", specifier = ">=3.0.0" },
-    { name = "plotly", specifier = ">=6.0.0" },
-    { name = "polars", specifier = ">=1.34.0" },
-    { name = "pyarrow", specifier = ">=18.0.0" },
+    { name = "catboost", specifier = ">=1.2.10" },
+    { name = "ipykernel", specifier = ">=7.2.0" },
+    { name = "ipython", specifier = ">=9.13.0" },
+    { name = "jupyterlab", specifier = ">=4.5.7" },
+    { name = "lightgbm", specifier = ">=4.6.0" },
+    { name = "lime", specifier = ">=0.2.0.1" },
+    { name = "matplotlib", specifier = ">=3.10.9" },
+    { name = "numpy", specifier = ">=2.4.6" },
+    { name = "pandas", specifier = ">=3.0.3" },
+    { name = "plotly", specifier = ">=6.7.0" },
+    { name = "polars", specifier = ">=1.41.0" },
+    { name = "pyarrow", specifier = ">=24.0.0" },
     { name = "scikit-learn", specifier = ">=1.8.0" },
-    { name = "scipy", specifier = ">=1.14.0" },
-    { name = "shap", specifier = ">=0.46.0" },
-    { name = "tabulate", specifier = ">=0.9.0" },
-    { name = "tqdm", specifier = ">=4.0.0" },
+    { name = "scipy", specifier = ">=1.17.1" },
+    { name = "shap", specifier = ">=0.51.0" },
+    { name = "tabulate", specifier = ">=0.10.0" },
+    { name = "tqdm", specifier = ">=4.67.3" },
 ]
 
 [[package]]

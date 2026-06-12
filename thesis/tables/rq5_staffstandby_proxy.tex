@@ -1,5 +1,5 @@
 \begin{table}[ht]
-\caption{Test of the missingness-proxy hypothesis for \texttt{IsStaffStandBy} on L5B15. The flag is never \texttt{true} in the sample, and what varies across records is whether the field is populated at all; where it is populated, customer-profile data is far more likely to be present, indicating that the surrogate (and the underlying model) keys on the field's \emph{presence} as a proxy for record completeness rather than on staff/standby status itself.}
+\caption{Test of the missingness-proxy hypothesis for the IsStaffStandBy flag on L5B15. The flag is never true in the sample, and what varies across records is whether the field is populated at all; where it is populated, customer-profile data is far more likely to be present, indicating that the surrogate (and the underlying model) keys on the field's presence as a proxy for record completeness rather than on staff/standby status itself.}
 \label{tab:rq5_staffstandby_proxy}
 \centering
 \begin{tabular}{lr}
@@ -8,17 +8,16 @@ Quantity & Value \\
 \midrule
 n (L5B15 records) & 64,006 \\
 IsStaffStandBy populated rate & 0.582 \\
-P(IsStaffStandBy = True) overall & 0.0000 \\
-P(IsStaffStandBy = True | populated) & 0.0000 \\
-customer fields in $C$ (excl.\ prev-flight) & 75 \\
-previous-flight fields in $Y$ & 33 \\
+records with IsStaffStandBy = true (overall and among populated) & 0 \\
+customer-attribute fields used for the completeness index & 75 \\
+previous-flight customer-attribute fields & 33 \\
 mean customer-completeness | populated & 0.755 \\
 mean customer-completeness | blank/null & 0.714 \\
 P(previous-flight profile | populated) & 0.203 \\
 P(previous-flight profile | blank/null) & 0.030 \\
 risk ratio & 6.8x \\
-point-biserial r (populated vs completeness) & 0.251 (p=0.0e+00) \\
-Cramér's V (populated vs prev-flight profile) & 0.253 (p=0.0e+00) \\
+point-biserial $r$ (populated vs.\ completeness) & 0.251 ($p<0.001$) \\
+Cramér's $V$ (populated vs.\ previous-flight profile) & 0.253 ($p<0.001$) \\
 \bottomrule
 \end{tabular}
 \end{table}

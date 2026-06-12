@@ -257,28 +257,27 @@ def staffstandby_proxy() -> None:
     summary = pd.DataFrame([
         ("n (L5B15 records)", f"{n:,}"),
         ("IsStaffStandBy populated rate", f"{rate:.3f}"),
-        ("P(IsStaffStandBy = True) overall", f"{true_rate_overall:.4f}"),
-        ("P(IsStaffStandBy = True | populated)", f"{true_rate_among_pop:.4f}"),
-        ("customer fields in $C$ (excl.\\ prev-flight)", f"{len(comp_cols)}"),
-        ("previous-flight fields in $Y$", f"{len(pf_cols)}"),
+        ("records with IsStaffStandBy = true (overall and among populated)", "0"),
+        ("customer-attribute fields used for the completeness index", f"{len(comp_cols)}"),
+        ("previous-flight customer-attribute fields", f"{len(pf_cols)}"),
         ("mean customer-completeness | populated", f"{comp_pop:.3f}"),
         ("mean customer-completeness | blank/null", f"{comp_mis:.3f}"),
         ("P(previous-flight profile | populated)", f"{p_pf_pop:.3f}"),
         ("P(previous-flight profile | blank/null)", f"{p_pf_mis:.3f}"),
         ("risk ratio", f"{risk_ratio:.1f}x"),
-        ("point-biserial r (populated vs completeness)", f"{r_pb:.3f} (p={p_pb:.1e})"),
-        ("Cramér's V (populated vs prev-flight profile)", f"{cramers_v:.3f} (p={p_chi:.1e})"),
+        ("point-biserial $r$ (populated vs.\\ completeness)", f"{r_pb:.3f} ($p<0.001$)"),
+        ("Cramér's $V$ (populated vs.\\ previous-flight profile)", f"{cramers_v:.3f} ($p<0.001$)"),
     ], columns=["quantity", "value"])
     summary.to_csv(ART / "rq5_staffstandby_proxy.csv", index=False)
 
     lines = [
         r"\begin{table}[ht]",
-        r"\caption{Test of the missingness-proxy hypothesis for "
-        r"\texttt{IsStaffStandBy} on L5B15. The flag is never \texttt{true} in "
+        r"\caption{Test of the missingness-proxy hypothesis for the "
+        r"IsStaffStandBy flag on L5B15. The flag is never true in "
         r"the sample, and what varies across records is whether the field is "
         r"populated at all; where it is populated, customer-profile data is "
         r"far more likely to be present, indicating that the surrogate (and the "
-        r"underlying model) keys on the field's \emph{presence} as a proxy for "
+        r"underlying model) keys on the field's presence as a proxy for "
         r"record completeness rather than on staff/standby status itself.}",
         r"\label{tab:rq5_staffstandby_proxy}",
         r"\centering",

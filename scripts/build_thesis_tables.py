@@ -215,8 +215,10 @@ def build_metric_selection() -> None:
         "between splits. KS is the two-sample Kolmogorov--Smirnov statistic on "
         "the AUC distribution. KS cleanly separates temporal splits "
         "(KS $\\approx 0.33$--$0.50$, $p \\approx 0$) from route splits "
-        "(KS $\\approx 0.04$, $p > 0.39$) and was therefore selected as the "
-        "$\\delta_m$ proxy.}\n"
+        "(KS $\\approx 0.04$, $p > 0.39$), making it the most informative of "
+        "the three AUC-based candidates. These metrics corroborate the Jaccard "
+        "overlap on model-version identifiers, which is used as the $\\delta_m$ "
+        "proxy in the main analysis.}\n"
         "\\label{tab:metric_selection}\n"
         "\\centering\n"
         "\\begin{tabular}{lrrrr}\n"
@@ -623,9 +625,7 @@ def build_bootstrap_dt_summary() -> None:
             "Within (mean) is the average of those means across the two "
             "sub-samples of each split. Gap $=$ Within $-$ Between. "
             "Classification: $>0.10$ genuine signal; $0.03$ to $0.10$ small "
-            "effect; $\\leq 0.03$ indistinguishable from refit noise. Raw "
-            "pairwise values are in "
-            "\\protect\\path{data/artifacts/l5b15/bootstrap_dt_routes.json}."
+            "effect; $\\leq 0.03$ indistinguishable from refit noise."
         )
         .to_latex(hrules=True, label="tab:bootstrap_dt")
     )

@@ -1,5 +1,5 @@
 \begin{table}[ht]
-\caption{Comparison of candidate metrics for model version churn ($\delta_m$) across all splits. AUC PSI uses equal-frequency bins ($B = 5$) on the modelPerformance distribution. $\Delta\mu_{\text{AUC}}$ is the absolute difference in mean AUC between splits. KS is the two-sample Kolmogorov--Smirnov statistic on the AUC distribution. KS cleanly separates temporal splits (KS $\approx 0.33$--$0.50$, $p \approx 0$) from route splits (KS $\approx 0.04$, $p > 0.39$) and was therefore selected as the $\delta_m$ proxy.}
+\caption{Comparison of candidate metrics for model version churn ($\delta_m$) across all splits. AUC PSI uses equal-frequency bins ($B = 5$) on the modelPerformance distribution. $\Delta\mu_{\text{AUC}}$ is the absolute difference in mean AUC between splits. KS is the two-sample Kolmogorov--Smirnov statistic on the AUC distribution. KS cleanly separates temporal splits (KS $\approx 0.33$--$0.50$, $p \approx 0$) from route splits (KS $\approx 0.04$, $p > 0.39$), making it the most informative of the three AUC-based candidates. These metrics corroborate the Jaccard overlap on model-version identifiers, which is used as the $\delta_m$ proxy in the main analysis.}
 \label{tab:metric_selection}
 \centering
 \begin{tabular}{lrrrr}

@@ -47,3 +47,6 @@ texput.log
 
 # Pega Health Check exports (large HTML reports, kept locally only)
 healthCheckDir/
+
+# Personal writing-style feedback (kept locally only, not tracked)
+thesis/feedback*.csv

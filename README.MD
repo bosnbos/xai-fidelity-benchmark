@@ -20,117 +20,79 @@ Replication code for a master's thesis on Explainable AI (XAI) evaluation in a p
 
 **RQ2 — Explanation stability.** SHAP and LIME produce consistent feature rankings across all split types (temporal, route, culture). The decision tree is consistently the least stable method; its instability is driven by refit variance rather than genuine model or data change.
 
-**RQ3 — Instability attribution.** Under controlled conditions (route and culture splits, where model-version overlap is near 1 by construction), the dominant source of observed instability is the explanation method itself, specifically the decision tree's refit sensitivity. Under temporal splits, large propensity drift and near-complete model-version turnover co-occur with DT divergence; SHAP and LIME continue to agree throughout.
+**RQ3 — Instability attribution.** Under controlled conditions (route and culture splits), the dominant source of observed instability is the explanation method itself, specifically the decision tree's refit sensitivity. Under temporal splits, large propensity drift and near-complete model-version turnover co-occur with DT divergence; SHAP and LIME continue to agree throughout.
 
-**RQ4 — Cross-offer replication.** The fidelity and stability patterns replicate across all four variants. Temporal instability is a structural consequence of Pega ADM's continuous online learning: any time window long enough to span meaningful population dynamics also spans many micro-updates of the underlying Naive Bayes, so temporal splits structurally combine data drift and snapshot turnover regardless of the offer.
+**RQ4 — Cross-offer replication.** The fidelity and stability patterns replicate across all four variants. Temporal instability is a structural consequence of Pega ADM's continuous online learning: any time window long enough to span meaningful population dynamics also spans many micro-updates of the underlying Naive Bayes.
 
-**RQ5 — Feature drivers.** The L5B15 propensity score is dominated by contact recency and frequency (contact history features) and trip context, not customer identity. No customer-level attributes were retained as active predictors, so the model scores contact fatigue rather than who the customer is. A secondary finding is that the staff-standby flag acts as a data-completeness proxy rather than a behavioural signal, illustrating that high importance and behavioural meaningfulness are not the same thing in a self-selecting feature space.
+**RQ5 — Feature drivers.** The L5B15 propensity score is dominated by contact recency and frequency and trip context, not customer identity. No customer-level attributes were retained as active predictors, so the model scores contact fatigue rather than who the customer is. A secondary finding is that the staff-standby flag acts as a data-completeness proxy rather than a behavioural signal.
 
 ---
 
 ## Notebooks
 
-Run in order. **01 and 02b are independent.** Notebooks 03-08b all require 02 first.
+Notebooks are numbered in execution order. 01 and 02b are independent of each other; 03 onwards depend on 02.
 
 | Notebook | Purpose | Depends on |
 |---|---|---|
 | `01_adm_analysis.ipynb` | Inspect ADM model snapshots and predictor binning | Nothing |
 | `02_data_ingestion.ipynb` | Raw decision JSON → filtered parquet (L5B15 / CLUG) | `data/decisions/` |
 | `02b_data_ingestion_thirdparty.ipynb` | Raw decision JSON → filtered parquet (BookingDotCom / Cartrawler) | `data/decisions/` |
-| `03_eda.ipynb` | EDA: temporal distribution, channel overview, missingness, model version churn | `02` |
-| `04_surrogate_selection.ipynb` | Surrogate architecture selection on L5B15: Linear / GaussianNB / RandomForest / LightGBM / CatBoost on the full fidelity suite | `02` |
-| `05_surrogate_fit.ipynb` | Refit the selected CatBoost per offer variant; saves per-variant artifacts + cross-variant fidelity table | `02`, `04` |
+| `03_eda.ipynb` | Temporal distribution, channel overview, missingness, model version churn | `02` |
+| `04_surrogate_selection.ipynb` | Surrogate architecture selection on L5B15 across five candidate models | `02` |
+| `05_surrogate_fit.ipynb` | Refit selected CatBoost per offer variant; produces cross-variant fidelity table | `02`, `04` |
 | `06_explanation.ipynb` | DT, SHAP, LIME explanations and cross-method rank comparison | `02`, `05` |
-| `07_stability.ipynb` | Stability across temporal, route, and culture splits: Spearman ρ, Jaccard@k; within-sample DT bootstrap | `02`, `05`, `06` |
-| `08_attribution.ipynb` | Instability decomposition into δ_d (KS), δ_m (J_v), δ_e^DT, δ_e^LIME; PSI bin-sensitivity diagnostics | `02`, `05`, `06`, `07` |
+| `07_stability.ipynb` | Stability across temporal, route, and culture splits; DT bootstrap validation | `02`, `05`, `06` |
+| `08_attribution.ipynb` | Instability decomposition into data drift, model churn, and explainer sensitivity | `02`, `05`, `06`, `07` |
 | `08b_attribution_replication.ipynb` | RQ4 — same attribution pipeline applied to CLUG, BookingDotCom, Cartrawler | `02`, `02b`, `05`, `06`, `07` |
-| `09_vendor_hds_analysis.ipynb` | RQ5 supplementary — mirrors Pega's HDS-style XGBoost feature importance; compares rankings against SHAP/LIME/DT | `02`, `06` |
-| `10_pega_nb_importance.ipynb` | RQ5 supplementary — re-implements Pega's native NB importance formula directly from predictor-binning snapshots | `data/adm/` |
-
-### Adding new data
-
-Drop new Pega decision JSON exports into `data/decisions/` and re-run `02_data_ingestion.ipynb`. It picks up all files in that folder, deduplicates on `modelExecutionID`, and overwrites the parquet.
+| `09_vendor_hds_analysis.ipynb` | RQ5 supplementary — Pega HDS-style XGBoost importance compared against SHAP/LIME/DT | `02`, `06` |
 
 ---
 
-## Thesis tables
+## Scripts
 
-All thesis-ready LaTeX tables are produced by **`scripts/build_thesis_tables.py`**, which reads the JSON / CSV artifacts saved by the notebooks (in `data/artifacts/`) and writes the `.tex` files directly into **`thesis/tables/``. The thesis references these files via `\input{tables/<name>}`, so a rebuild updates the thesis tables in place.
+All scripts read artifacts saved by the notebooks and write outputs to `thesis/tables/` or `data/artifacts/`. No notebook re-run is needed to regenerate tables after a formatting change.
 
-The notebooks compute and persist numbers (JSON / CSV); the script handles all formatting (captions, column headers, rounding). Separating the two means thesis-table tweaks never require re-running expensive notebook computations.
-
-```bash
-uv run python scripts/build_thesis_tables.py            # rebuild every table
-uv run python scripts/build_thesis_tables.py --list     # list available targets
-uv run python scripts/build_thesis_tables.py attribution_l5b15 stability_matrix
-```
-
-**Run the script whenever:**
-- you re-run a notebook and want the corresponding `.tex` refreshed (numbers changed)
-- you tweak a caption, column header, or rounding inside the script (formatting changed)
-
-**Main-text tables**
-
-| Target | Reads (under `data/artifacts/`) | Writes (under `thesis/tables/`) |
-|---|---|---|
-| `surrogate_fidelity` | `surrogate_fidelity_per_variant.csv` | `surrogate_fidelity_per_variant.tex` |
-| `rq1_explainer_fidelity` | `rq1_explainer_fidelity.csv` | `rq1_explainer_fidelity.tex` |
-| `stability_matrix` | `l5b15/stability_summary.json` | `stability_matrix.tex` |
-| `attribution_l5b15` | `l5b15/attribution_summary.json` | `attribution_summary.tex` |
-| `attribution_replication` | `attribution_summary_replication.json` | `attribution_summary_replication.tex` |
-
-**Appendix tables** (in narrative order)
-
-| Target | Reads (under `data/artifacts/`) | Writes (under `thesis/tables/`) |
-|---|---|---|
-| `missingness` | `missingness.csv` | `missingness.tex` |
-| `depth_sensitivity` | `l5b15/depth_sensitivity_table.csv` | `depth_sensitivity_table.tex` |
-| `metric_selection` | `metric_selection.csv` | `metric_selection.tex` |
-| `surrogate_comparison` | `l5b15/surrogate_comparison.csv` | `surrogate_comparison.tex` |
-| `psi_propensity` | `l5b15/psi_bin_sensitivity_propensity.csv` | `psi_bin_sensitivity_propensity.tex` |
-| `psi_auc` | `l5b15/psi_bin_sensitivity_auc.csv` | `psi_bin_sensitivity_auc.tex` |
-| `jaccard_sensitivity` | `l5b15/attribution_summary.json` | `jaccard_threshold_sensitivity.pdf` + `.png` |
-| `bootstrap_dt_summary` | `l5b15/bootstrap_dt_routes.json` | `bootstrap_dt_summary.tex` |
-| `top10_per_split` | `l5b15/top10_per_split.csv` | `top10_per_split.tex` |
-
-`rq1_explainer_fidelity.csv` is built by `scripts/build_rq1_table.py` (joins per-variant `fidelity.json` and `dt_model.pkl`); run that once when surrogate/DT models change, then `build_thesis_tables.py` for the LaTeX.
+| Script | Produces |
+|---|---|
+| `build_thesis_tables.py` | All `.tex` tables in `thesis/tables/` from JSON/CSV artifacts |
+| `build_rq1_table.py` | `data/artifacts/rq1_explainer_fidelity.csv` (joins per-variant fidelity and DT model files) |
+| `build_rq5_feature_analysis.py` | RQ5 feature importance `.tex` tables |
+| `build_metric_selection_table.py` | `data/artifacts/metric_selection.csv` |
+| `build_missingness_table.py` | `data/artifacts/missingness.csv` |
+| `plot_feature_importance_heatmap.py` | `thesis/figures/feature_importance_heatmap.png` |
+| `plot_shap_top_by_category.py` | SHAP bar charts grouped by feature category |
+| `plot_shap_waterfall.py` | SHAP waterfall plots for individual instances |
+| `run_explanation_all_variants.py` | Runs notebook 06 explanation pipeline across all variants |
+| `stratify_by_technique.py` | `data/artifacts/stratified_by_technique.json` |
+| `stratify_l5b15_stability.py` | Stability stratification artifacts for L5B15 |
 
 ---
 
 ## Data
 
-All raw and derived files are gitignored — add them locally.
+All raw and derived data files are gitignored and must be added locally.
 
 | Location | Contents |
 |---|---|
 | `data/decisions/` | Raw Pega decision JSON exports |
-| `data/adm/` | ADM model snapshots + predictor binning JSON |
-| `data/processed/` | Parquet outputs of notebooks 02 / 02b |
-| `data/artifacts/{VARIANT}/` | Trained model + explanation artifacts (one folder per variant) |
+| `data/adm/` | ADM model snapshots and predictor binning JSON |
+| `data/processed/` | Parquet outputs of notebooks 02 and 02b |
+| `data/artifacts/{VARIANT}/` | Trained model and explanation artifacts, one folder per variant |
 
-**Processed files** (`data/processed/`):
-`luggage_email_outbound.parquet`, `l5b15_decisions.parquet`, `l5b15_email_outbound.parquet`, `thirdparty_email_outbound.parquet`
+**Processed parquet files** (`data/processed/`): `luggage_email_outbound.parquet`, `l5b15_decisions.parquet`, `l5b15_email_outbound.parquet`, `thirdparty_email_outbound.parquet`
 
-**Artifact files per variant** (`data/artifacts/l5b15/`, `CLUG/`, `BookingDotCom/`, `Cartrawler/`):
-`catboost_model.cbm`, `feature_cols.json`, `cat_cols.json`, `num_cols.json`, `train_idx.npy`, `test_idx.npy`, `fidelity.json`, `dt_model.pkl`, `dt_rules.txt`, `shap_values.npy`, `shap_importances.json`, `lime_explanations.parquet`, `lime_importances.json`, `cross_method_comparison.json`
+**Artifact files per variant** (`data/artifacts/l5b15/`, `CLUG/`, `BookingDotCom/`, `Cartrawler/`): `catboost_model.cbm`, `feature_cols.json`, `cat_cols.json`, `num_cols.json`, `train_idx.npy`, `test_idx.npy`, `fidelity.json`, `dt_model.pkl`, `dt_rules.txt`, `shap_values.npy`, `shap_importances.json`, `lime_explanations.parquet`, `lime_importances.json`, `cross_method_comparison.json`, `stability_summary.json`, `attribution_summary.json`
 
-**Summary outputs** (written to `data/artifacts/l5b15/` by notebooks 07-08):
-`stability_summary.json`, `attribution_summary.json`
-
-**Cross-variant outputs** (`data/artifacts/`):
-`surrogate_fidelity_per_variant.csv` (from notebook 05)
+**Cross-variant outputs** (`data/artifacts/`): `surrogate_fidelity_per_variant.csv`
 
 ---
 
 ## Setup
 
 ```bash
-# Install uv if needed: https://docs.astral.sh/uv/
 uv sync
 uv run jupyter lab
 ```
-
-`uv sync` installs all dependencies and the local `src/my_project` package. All notebooks use `uv run` or can be opened directly in the activated environment.
 
 ---
 
@@ -138,11 +100,10 @@ uv run jupyter lab
 
 ```
 ├── data/                                    # gitignored
-│   ├── adm/                                 # ADM snapshot files
-│   ├── decisions/                           # Raw decision JSON exports
-│   ├── processed/                           # Parquet outputs of 02 / 02b
-│   └── artifacts/                           # One folder per variant
-│       └── {VARIANT}/
+│   ├── adm/
+│   ├── decisions/
+│   ├── processed/
+│   └── artifacts/{VARIANT}/
 ├── notebooks/
 │   ├── 01_adm_analysis.ipynb
 │   ├── 02_data_ingestion.ipynb
@@ -154,31 +115,19 @@ uv run jupyter lab
 │   ├── 07_stability.ipynb
 │   ├── 08_attribution.ipynb
 │   ├── 08b_attribution_replication.ipynb
-│   ├── 09_vendor_hds_analysis.ipynb
-│   └── 10_pega_nb_importance.ipynb
+│   └── 09_vendor_hds_analysis.ipynb
 ├── scripts/
-│   ├── build_thesis_tables.py               # Main table builder (reads artifacts, writes .tex)
-│   ├── build_rq1_table.py                   # Builds rq1_explainer_fidelity.csv
-│   ├── build_rq5_feature_analysis.py        # Builds RQ5 feature importance tables
-│   ├── build_metric_selection_table.py
-│   ├── build_missingness_table.py
-│   ├── plot_feature_importance_heatmap.py
-│   ├── plot_shap_top_by_category.py
-│   ├── plot_shap_waterfall.py
-│   ├── run_explanation_all_variants.py
-│   ├── stratify_by_technique.py
-│   └── stratify_l5b15_stability.py
 ├── src/
 │   └── my_project/
-│       ├── parsing.py                       # Pega JSON parsing
-│       ├── features.py                      # Per-variant feature configs
-│       ├── metrics.py                       # Fidelity, stability, PSI metrics
-│       ├── surrogate.py                     # CatBoost surrogate + NB baseline
-│       └── explanation.py                   # DT, SHAP, LIME utilities
+│       ├── parsing.py
+│       ├── features.py
+│       ├── metrics.py
+│       ├── surrogate.py
+│       └── explanation.py
 ├── thesis/
 │   ├── thesis.tex
 │   ├── references.bib
-│   ├── tables/                              # LaTeX tables (generated by scripts/)
+│   ├── tables/                              # generated by scripts/
 │   └── figures/
 ├── pyproject.toml
 └── README.MD
@@ -203,7 +152,7 @@ uv run jupyter lab
 - `feature_ranking(importances)` → 1-based rank Series
 - `stability_spearman(rank_a, rank_b)` → Spearman ρ between rank vectors
 - `jaccard_at_k(rank_a, rank_b, k)` → Jaccard similarity of top-k feature sets
-- `psi(scores_a, scores_b, bins=10)` → `(psi_value, label)`, label ∈ `{"stable", "moderate", "significant"}`
+- `psi(scores_a, scores_b, bins=10)` → `(psi_value, label)`, label in `{"stable", "moderate", "significant"}`
 
 **`surrogate.py`**
 - `build_feature_matrix(df, pega_features, numeric_features)` → `(X, y, cat_cols, num_cols)`
@@ -225,34 +174,35 @@ uv run jupyter lab
 
 ### Why CatBoost as surrogate
 
-Pega ADM uses Naive Bayes internally. We train a CatBoost surrogate on Pega's output propensity scores (R² ≈ 0.92) because:
-1. **TreeSHAP requires a tree model** — KernelSHAP on NB would add ~100× compute and stack its own error
-2. **Fidelity over mimicry** — a flexible surrogate reproduces Pega's input-output mapping better than one constrained by conditional independence
-3. **Native categorical and missing-value handling** — no encoding choices as confounds
+Pega ADM uses Naive Bayes internally. A CatBoost surrogate is trained on Pega's output propensity scores (R² ≈ 0.92) for three reasons: TreeSHAP requires a tree model; a flexible surrogate reproduces Pega's input-output mapping better than one constrained by conditional independence; and CatBoost handles categoricals and missing values natively without encoding choices as confounds.
 
 ### Instability decomposition (RQ3)
 
 Observed instability between two splits is decomposed into three sources:
 
-| Source | Metric | Threshold (significant) |
+| Source | Metric | Threshold |
 |---|---|---|
-| **δ_d** (data drift) | Kolmogorov-Smirnov statistic on propensity score distribution | KS ≥ 0.10 |
-| **δ_m** (model churn) | Jaccard overlap on the set of `modelVersion` IDs active in each split | J_v ≤ 0.10 |
-| **δ_e** (explainer sensitivity) | Two mechanisms vs SHAP as deterministic reference (see below) | reported, not classified |
+| Data drift (δ_d) | KS statistic on propensity score distribution | KS ≥ 0.10 |
+| Model churn (δ_m) | Jaccard overlap on `modelVersion` IDs active in each split | J_v ≤ 0.10 |
+| Explainer sensitivity (δ_e) | Two mechanisms measured against SHAP as deterministic reference | reported, not thresholded |
 
-**Why KS over PSI.** Pega ADM's isotonic calibration produces a step-function propensity (clustered values), which makes PSI bin-sensitive. KS operates on empirical CDFs with no binning parameter. The bin-sensitivity check is in `08_attribution.ipynb` §A1 and exported as `psi_bin_sensitivity_propensity.tex`.
+KS is used over PSI because Pega ADM's isotonic calibration produces a step-function propensity, making PSI bin-sensitive. Jaccard on model-version IDs is used because the `modelPerformance` field carries heavy ties and is not a continuous performance measurement.
 
-**Two mechanisms of explainer sensitivity.** SHAP is the reference because TreeSHAP is deterministic given a fixed CatBoost surrogate.
+Two mechanisms of explainer sensitivity are distinguished, both expressed as gaps from the SHAP baseline:
 
-- **δ_e^DT = ρ_SHAP − ρ_DT** — DT refit sensitivity: the tree is re-fitted independently on each split.
-- **δ_e^LIME = ρ_SHAP − ρ_LIME** — LIME sampling sensitivity: LIME shares the fixed-surrogate property with SHAP, so any gap is local-perturbation noise.
+- `δ_e^DT = ρ_SHAP − ρ_DT` — DT refit sensitivity: the tree is re-fitted independently on each split, so any ranking gap reflects structural refit variance.
+- `δ_e^LIME = ρ_SHAP − ρ_LIME` — LIME sampling sensitivity: LIME shares the fixed-surrogate property with SHAP, so any gap is local-perturbation noise.
 
 ### Evaluation splits
 
-- **Temporal** — early vs late window within each variant's data range
-- **Route subgroups** — top 4 routes by volume (`DepartureAirport × DestinationAirport`), paired adjacently
-- **Culture** — fr-FR vs nl-NL bookings (same time window as route splits)
-- **Replication variants** — CLUG, BookingDotCom, Cartrawler (same pipeline as L5B15)
+| Split type | Description |
+|---|---|
+| Temporal | Early vs late window within each variant's data range |
+| Route | Top 4 routes by volume (DepartureAirport × DestinationAirport), paired adjacently |
+| Culture | fr-FR vs nl-NL bookings within the same time window |
+| Replication | CLUG, BookingDotCom, Cartrawler run through the same pipeline as L5B15 |
+
+Route and culture splits share the same pool of active model snapshots by construction, making them a controlled natural experiment where δ_m ≈ 0 and δ_d is typically small, isolating δ_e.
 
 ---
 

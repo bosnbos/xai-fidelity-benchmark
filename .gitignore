@@ -1,6 +1,12 @@
 # Virtual environment
 .venv/
 
+# Claude Code project settings (local only)
+.claude/
+
+# Supplementary notebooks not part of the thesis pipeline
+notebooks/10_pega_nb_importance.ipynb
+
 # Python cache
 __pycache__/
 *.pyc

@@ -49,8 +49,9 @@ _GROUP_RULES: list[tuple[str, str]] = [
     ("Customer attributes",  "Customer."),
     ("Flight data",          "CustBookedFlight.FlightData."),
     ("Flight data",          "CustBookedFlight.Flight."),
-    # Catch-all: any other CustBookedFlight.* (mostly BookingData) → booking context
-    ("Booking context",      "CustBookedFlight."),
+    # BookingData sub-namespace → booking context; all other CustBookedFlight.* → flight data
+    ("Booking context",      "CustBookedFlight.BookingData."),
+    ("Flight data",          "CustBookedFlight."),
 ]
 
 

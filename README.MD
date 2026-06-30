@@ -1,4 +1,4 @@
-# Transavia Pega ADM Analysis
+# XAI Fidelity and Stability: Post-hoc Explanations for Production Propensity Models
 
 Replication code for a master's thesis on Explainable AI (XAI) evaluation in a production Customer Decision Hub (CDH). The empirical setting is a large European airline using Pega Adaptive Decision Manager (ADM) to score luggage add-on offers in the Email/Outbound channel. The primary analysis focuses on a 15 kg luggage add-on (L5B15), with replication across three further variants: CLUG, BookingDotCom, Cartrawler.
 
